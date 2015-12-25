@@ -41,10 +41,12 @@ var app = electron.app
 		if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
 	})
 	.on('ready', function() {
+		var mainScreen = electron.screen.getPrimaryDisplay();
+
 		// Create the browser window.
 		win = new electron.BrowserWindow({
-			width: 800,
-			height: 600,
+			width: 250,
+			height: 1000,
 			frame: false,
 			resizable: false,
 			skipTaskbar: true,
@@ -52,9 +54,12 @@ var app = electron.app
 			type: 'desktop',
 			show: false,
 			transparent: true,
+			x: mainScreen.size.width - 250,
+			y: 50,
+			center: false,
 		});
 
-		win.loadURL('file://' + __dirname + '/index.html');
+		win.loadURL('file://' + __dirname + '/themes/sidebar.html');
 		win.showInactive();
 		restyleWindow();
 
