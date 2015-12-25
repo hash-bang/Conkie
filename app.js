@@ -3,6 +3,7 @@ var asyncExec = require('async-chainable-exec');
 var childProcess = require('child_process');
 var electron = require('electron');
 var fs = require('fs');
+var os = require('os');
 
 var win;
 
@@ -41,15 +42,30 @@ function restyleWindow(finish) {
 }
 
 function updateCycle(finish) {
+	// Base config structure {{{
 	var data = {
 		system: {
-			uptime: undefined,
+			hostname: os.hostname(),
+			load: os.loadavg(),
+			platform: os.platform(),
+			uptime: os.uptime(),
 		},
+		ram: {
+			free: os.freemem(),
+			total: os.totalmem(),
+			used: null, // Calculated later
+		},
+		net: os.networkInterfaces(),
 	};
+	// }}}
+
+	// Post setting calculations {{{
+	data.ram.used = data.ram.total - data.ram.free;
+	// }}}
 
 	async()
 		.parallel([
-			function(next) {
+			/*function(next) {
 				// system.uptime {{{
 				fs.readFile('/proc/uptime', function(err, contents) {
 					if (err) return next(err);
@@ -62,19 +78,10 @@ function updateCycle(finish) {
 			},
 			function(next) {
 				// system.load {{{
-				fs.readFile('/proc/loadavg', function(err, contents) {
-					if (err) return next(err);
-					var bits = /^([0-9\.]+) ([0-9\.]+) ([0-9\.]+) /.exec(contents.toString());
-					if (!bits) return next('Invalid load average format');
-					data.system.load = [
-						bits[1],
-						bits[2],
-						bits[3],
-					];
-					next();
-				});
+				data.system.load = os.loadavg();
+				next();
 				// }}}
-			},
+			}, */
 		])
 		.then(function(next) {
 			console.log('DUMP UPDATE', data);
