@@ -55,11 +55,7 @@ var app = electron.app
 
 		win.loadURL('file://' + __dirname + '/index.html');
 		win.showInactive();
-
-		win.webContents.on('dom-ready', function() {
-			console.log('LOADED!');
-			restyleWindow();
-		});
+		restyleWindow();
 
 		win
 			.on('page-title-updated', function(e) {
