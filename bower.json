@@ -1,0 +1,11 @@
+{
+  "name": "Conker",
+  "version": "1.0.0",
+  "license": "Private",
+  "private": true,
+  "dependencies": {
+    "angular": "~1.4.8",
+    "bootstrap": "~3.3.6",
+    "font-awesome": "~4.5.0"
+  }
+}

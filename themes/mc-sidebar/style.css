@@ -1,0 +1,14 @@
+body {
+	background: #981105;
+	color: white;
+	font-family: Zekton, Sans;
+	font-size: 12px;
+}
+
+h1 {
+	color: #00d9ff;
+}
+
+h1, h2 {
+	font-size: 12px;
+}
