@@ -51,6 +51,7 @@ var app = electron.app
 			title: 'Conker',
 			type: 'desktop',
 			show: false,
+			transparent: true,
 		});
 
 		win.loadURL('file://' + __dirname + '/index.html');

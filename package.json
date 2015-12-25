@@ -2,9 +2,9 @@
   "name": "conker",
   "version": "0.0.0",
   "description": "JavaScript desktop widgets",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "electron index.js"
+    "start": "electron --enable-transparent-visuals --disable-gpu app.js"
   },
   "devDependencies": {
     "electron-prebuilt": "^0.36.0"
