@@ -29,5 +29,4 @@ app.controller('conkerController', function($scope) {
 		batteryUpdate();
 	});
 	// }}}
-
 });

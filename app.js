@@ -39,6 +39,59 @@ function restyleWindow(finish) {
 		])
 		.end(finish);
 }
+
+function updateCycle(finish) {
+	var data = {
+		system: {
+			uptime: undefined,
+		},
+	};
+
+	async()
+		.parallel([
+			function(next) {
+				// system.uptime {{{
+				fs.readFile('/proc/uptime', function(err, contents) {
+					if (err) return next(err);
+					var bits = /^([0-9\.]+) /.exec(contents.toString());
+					if (!bits) return next('Invalid proc uptime format');
+					data.system.uptime = parseFloat(bits[1]) * 1000;
+					next();
+				});
+				// }}}
+			},
+			function(next) {
+				// system.load {{{
+				fs.readFile('/proc/loadavg', function(err, contents) {
+					if (err) return next(err);
+					var bits = /^([0-9\.]+) ([0-9\.]+) ([0-9\.]+) /.exec(contents.toString());
+					if (!bits) return next('Invalid load average format');
+					data.system.load = [
+						bits[1],
+						bits[2],
+						bits[3],
+					];
+					next();
+				});
+				// }}}
+			},
+		])
+		.then(function(next) {
+			console.log('DUMP UPDATE', data);
+			next();
+		})
+		.end(finish);
+}
+
+function updateRepeater() {
+	updateCycle(function(err) {
+		if (err) {
+			console.log('Update cycle ERROR', err);
+		} else {
+			setTimeout(updateRepeater, 1000);
+		}
+	});
+}
 // }}}
 
 var app = electron.app
@@ -101,6 +154,7 @@ var app = electron.app
 			}
 
 			restyleWindow();
+			updateRepeater();
 		});
 
 		console.log(win);
