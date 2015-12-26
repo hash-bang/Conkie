@@ -8,7 +8,6 @@ var electron = require('electron');
 var fs = require('fs');
 var fspath = require('path');
 var os = require('os');
-var network = require('network');
 var temp = require('temp').track();
 var wirelessTools = require('wireless-tools');
 
