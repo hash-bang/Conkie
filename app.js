@@ -6,6 +6,7 @@ var electron = require('electron');
 var fs = require('fs');
 var fspath = require('path');
 var os = require('os');
+var network = require('network');
 var temp = require('temp').track();
 
 var app;
@@ -16,7 +17,7 @@ var program = {
 	theme: __dirname + '/themes/mc-sidebar/index.html',
 };
 
-// Global functions {{{
+// Data update cycle {{{
 function updateCycle(finish) {
 	// Base config structure {{{
 	var data = {
@@ -31,7 +32,7 @@ function updateCycle(finish) {
 			total: os.totalmem(),
 			used: null, // Calculated later
 		},
-		net: os.networkInterfaces(),
+		net: [],
 	};
 	// }}}
 
@@ -58,6 +59,13 @@ function updateCycle(finish) {
 				next();
 				// }}}
 			}, */
+			function(next) {
+				network.get_interfaces_list(function(err, ifaces) {
+					if (err) return next(err);
+					data.net = ifaces;
+					next();
+				});
+			},
 		])
 		.then(function(next) {
 			console.log('DUMP UPDATE', data);
@@ -85,7 +93,9 @@ async()
 		// }}}
 	})
 	.then('theme', function(next) {
+		// Read in theme file {{{
 		fs.readFile(program.theme, 'utf8', next);
+		// }}}
 	})
 	.then('tempFile', function(next) {
 		// Crate temp file (which is the EJS compiled template) {{{
@@ -110,8 +120,8 @@ async()
 				console.log('READY!');
 			})
 			.on('error', next);
-		// }}}
 		next();
+		// }}}
 	})
 	.then(function(next) {
 		// Setup page {{{
@@ -207,6 +217,7 @@ async()
 		win = null; // Remove reference and probably terminate the program
 		// }}}
 
+		// Handle exit state {{{
 		if (err) {
 			console.log('ERROR', err.toString());
 			process.exit(1);
@@ -214,5 +225,5 @@ async()
 			console.log('Normal exit');
 			process.exit(0);
 		}
+		// }}}
 	});
-

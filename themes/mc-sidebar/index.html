@@ -13,7 +13,7 @@
 	</head>
 	<body ng-app="app" ng-controller="conkerController">
 		<pre>
-			{{battery}}
+			{{net}}
 		</pre>
 		<h1>Power</h1>
 		<div class="row">
@@ -31,19 +31,21 @@
 		</div>
 
 		<h1>Network</h1>
-		<div class="row">
-			<div class="col-xs-6">FIXME:WLAN-ADAPTER</div>
-			<div class="col-xs-6">FIXME:WLAN-IP</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-6">essid</div>
-			<div class="col-xs-6">FIXME:WLAN-ESSID</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-6">FIXME:WLAN-BANDWIDTH-GRAPH</div>
-			<div class="col-xs-6">
-				<div class="row">FIXME:WLAN-UP-SPEED</div>
-				<div class="row">FIXME:WLAN-DOWN-SPEED</div>
+		<div ng-repeat="interface in net track by interface.name">
+			<div class="row">
+				<div class="col-xs-6">{{interface.name}}</div>
+				<div class="col-xs-6">{{interface.ip_address}}</div>
+			</div>
+			<div ng-if="interface.type == 'Wireless'" class="row">
+				<div class="col-xs-6">essid</div>
+				<div class="col-xs-6">FIXME:interface.essid</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-6">FIXME:WLAN-BANDWIDTH-GRAPH</div>
+				<div class="col-xs-6">
+					<div class="row">FIXME:WLAN-UP-SPEED</div>
+					<div class="row">FIXME:WLAN-DOWN-SPEED</div>
+				</div>
 			</div>
 		</div>
 
@@ -61,7 +63,7 @@
 			<div class="col-xs-6">FIXME:CPU-GRAPH</div>
 			<div class="col-xs-6">
 				<div class="row">FIXME:CPU-USED-PERCENT</div>
-				<div class="row">FIXME:CPU-LOAD</div>
+				<div class="row">{{system.load[0] | number:2}} {{system.load[1] | number:2}} {{system.load[2] | number:2}}</div>
 			</div>
 		</div>
 		<div class="row">

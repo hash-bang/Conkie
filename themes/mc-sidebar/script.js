@@ -46,7 +46,6 @@ app.filter('byteSize', function() {
 
 		return (neg ? '-' : '') + value + ' ' + unit;
 	};
-
 });
 
 app.controller('conkerController', function($scope) {
