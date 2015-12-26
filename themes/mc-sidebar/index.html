@@ -102,7 +102,9 @@
 
 		<h1>Sync</h1>
 		<div class="row">
-			<div class="col-xs-12">FIXME:DROPBOX-STATUS</div>
+			<div class="col-xs-12">
+				<div ng-repeat="line in dropbox" ng-bind="line"></div>
+			</div>
 		</div>
 	</body>
 </html>

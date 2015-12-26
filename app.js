@@ -42,23 +42,7 @@ function updateCycle(finish) {
 
 	async()
 		.parallel([
-			/*function(next) {
-				// system.uptime {{{
-				fs.readFile('/proc/uptime', function(err, contents) {
-					if (err) return next(err);
-					var bits = /^([0-9\.]+) /.exec(contents.toString());
-					if (!bits) return next('Invalid proc uptime format');
-					data.system.uptime = parseFloat(bits[1]) * 1000;
-					next();
-				});
-				// }}}
-			},
-			function(next) {
-				// system.load {{{
-				data.system.load = os.loadavg();
-				next();
-				// }}}
-			}, */
+			// .net {{{
 			function(next) {
 				network.get_interfaces_list(function(err, ifaces) {
 					if (err) return next(err);
@@ -66,6 +50,19 @@ function updateCycle(finish) {
 					next();
 				});
 			},
+			// }}}
+			// .dropbox {{{
+			function(next) {
+				async()
+					.use(asyncExec)
+					.exec('dropbox', ['dropbox', 'status'])
+					.then(function(next) {
+						data.dropbox = this.dropbox;
+						next();
+					})
+					.end(next);
+			},
+			// }}}
 		])
 		.then(function(next) {
 			console.log('DUMP UPDATE', data);

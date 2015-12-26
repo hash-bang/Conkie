@@ -110,6 +110,7 @@ app.controller('conkerController', function($scope) {
 				$scope.system = data.system;
 				$scope.ram = data.ram;
 				$scope.net = data.net;
+				$scope.dropbox = data.dropbox;
 			});
 		});
 	// }}}
