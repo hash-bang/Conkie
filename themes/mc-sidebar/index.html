@@ -3,6 +3,13 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Hello World!</title>
+
+		<link rel="stylesheet" href="<%=root%>/bower_components/font-awesome/css/font-awesome.min.css">
+		<link href="<%=root%>/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+		<script src="<%=root%>/bower_components/moment/min/moment.min.js"></script>
+		<script src="<%=root%>/bower_components/angular/angular<%=debugMode ? '.min' : ''%>.js"></script>
+		<link href="<%=themeRoot%>/style.css" rel="stylesheet" type="text/css"/>
+		<script src="<%=themeRoot%>/script.js"></script>
 	</head>
 	<body ng-app="app" ng-controller="conkerController">
 		<pre>
@@ -20,7 +27,7 @@
 		</div>
 		<div class="row">
 			<div class="col-xs-6">Uptime</div>
-			<div class="col-xs-6">FIXME:UPTIME</div>
+			<div class="col-xs-6">{{system.uptime | duration}}</div>
 		</div>
 
 		<h1>Network</h1>
@@ -44,8 +51,8 @@
 		<div class="row">
 			<div class="col-xs-6">FIXME:WLAN-RAM-GRAPH</div>
 			<div class="col-xs-6">
-				<div class="row">FIXME:RAM-FREE Free</div>
-				<div class="row">FIXME:RAM-USED Used</div>
+				<div class="row">{{ram.free | byteSize}} Free</div>
+				<div class="row">{{ram.used | byteSize}} Used</div>
 			</div>
 		</div>
 

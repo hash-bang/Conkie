@@ -1,46 +1,22 @@
 var async = require('async-chainable');
 var asyncExec = require('async-chainable-exec');
 var childProcess = require('child_process');
+var ejs = require('ejs');
 var electron = require('electron');
 var fs = require('fs');
+var fspath = require('path');
 var os = require('os');
+var temp = require('temp').track();
 
+var app;
 var win;
 
 var program = {
 	debug: true,
+	theme: __dirname + '/themes/mc-sidebar/index.html',
 };
 
 // Global functions {{{
-function restyleWindow(finish) {
-	console.log('PID', process.pid);
-	async()
-		.use(asyncExec)
-		.execDefaults({
-			log: function(cmd) { console.log('[RUN]', cmd.cmd + ' ' + cmd.params.join(' ')) },
-			out: function(line) { console.log('[GOT]', line) },
-		})
-		.exec([
-			'wmctrl', 
-			'-F',
-			'-r',
-			'Conker',
-			'-b',
-			'add,below',
-			'-vvv',
-		])
-		.exec([
-			'wmctrl', 
-			'-F',
-			'-r',
-			'Conker',
-			'-b',
-			'add,sticky',
-			'-vvv',
-		])
-		.end(finish);
-}
-
 function updateCycle(finish) {
 	// Base config structure {{{
 	var data = {
@@ -85,6 +61,7 @@ function updateCycle(finish) {
 		])
 		.then(function(next) {
 			console.log('DUMP UPDATE', data);
+			win.webContents.send('updateState', data);
 			next();
 		})
 		.end(finish);
@@ -101,11 +78,43 @@ function updateRepeater() {
 }
 // }}}
 
-var app = electron.app
-	.on('window-all-closed', function() {
-		if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
+async()
+	.then(function(next) {
+		// Sanity checks {{{
+		next();
+		// }}}
 	})
-	.on('ready', function() {
+	.then('theme', function(next) {
+		fs.readFile(program.theme, 'utf8', next);
+	})
+	.then('tempFile', function(next) {
+		// Crate temp file (which is the EJS compiled template) {{{
+		var tempFile = temp.path({suffix: '.html'}, next);
+		fs.writeFile(tempFile, ejs.render(this.theme, {
+			debugMode: true,
+			root: 'file://' + __dirname,
+			themeRoot: 'file://' + fspath.dirname(program.theme),
+		}), function(err) {
+			if (err) return next(err);
+			next(null, tempFile);
+		});
+		// }}}
+	})
+	.then(function(next) {
+		// Setup browser app {{{
+		app = electron.app
+			.on('window-all-closed', function() {
+				if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
+			})
+			.on('ready', function() {
+				console.log('READY!');
+			})
+			.on('error', next);
+		// }}}
+		next();
+	})
+	.then(function(next) {
+		// Setup page {{{
 		var mainScreen = electron.screen.getPrimaryDisplay();
 
 		// Create the browser window.
@@ -134,25 +143,14 @@ var app = electron.app
 				}
 		);
 
-		win
-			.on('page-title-updated', function(e) {
-				// Prevent title changes so we can always find the window
-				e.preventDefault();
-			})
-			.on('closed', function() {
-				win = null; // Remove reference and probably terminate the program
-			});
+		win.on('page-title-updated', function(e) {
+			// Prevent title changes so we can always find the window
+			e.preventDefault();
+		})
 
-		win.loadURL('file://' + __dirname + '/themes/mc-sidebar/index.html');
+		win.loadURL('file://' + this.tempFile);
 
 		win.webContents.on('dom-ready', function() {
-			win.webContents.insertCSS(fs.readFileSync(__dirname + '/bower_components/font-awesome/css/font-awesome.min.css', 'utf8'));
-			win.webContents.insertCSS(fs.readFileSync(__dirname + '/bower_components/bootstrap/dist/css/bootstrap.min.css', 'utf8'));
-			win.webContents.executeJavaScript(fs.readFileSync(__dirname + '/bower_components/angular/angular.min.js', 'utf8'));
-
-			win.webContents.insertCSS(fs.readFileSync(__dirname + '/themes/mc-sidebar/style.css', 'utf8'));
-			win.webContents.executeJavaScript(fs.readFileSync(__dirname + '/themes/mc-sidebar/javascript.js', 'utf8'));
-
 			if (program.debug) {
 				win.show();
 				win.webContents.openDevTools();
@@ -160,9 +158,61 @@ var app = electron.app
 				win.showInactive();
 			}
 
-			restyleWindow();
+			// Kick off repeat cycle
 			updateRepeater();
+			return next();
 		});
+		// }}}
+	})
+	.then(function(next) {
+		// Apply X window styles {{{
+		if (program.debug) return next();
+		async()
+			.use(asyncExec)
+			.execDefaults({
+				log: function(cmd) { console.log('[RUN]', cmd.cmd + ' ' + cmd.params.join(' ')) },
+				out: function(line) { console.log('[GOT]', line) },
+			})
+			.exec([
+				'wmctrl', 
+				'-F',
+				'-r',
+				'Conker',
+				'-b',
+				'add,below',
+				'-vvv',
+			])
+			.exec([
+				'wmctrl', 
+				'-F',
+				'-r',
+				'Conker',
+				'-b',
+				'add,sticky',
+				'-vvv',
+			])
+			.end(next);
+		// }}}
+	})
+	.then(function(next) {
+		// Everything done - wait for window to terminate {{{
+		win.on('closed', function() {
+			next();
+		});
+		// }}}
+	})
+	.end(function(err) {
+		// Clean up references {{{
+		app.quit();
+		win = null; // Remove reference and probably terminate the program
+		// }}}
 
-		console.log(win);
+		if (err) {
+			console.log('ERROR', err.toString());
+			process.exit(1);
+		} else {
+			console.log('Normal exit');
+			process.exit(0);
+		}
 	});
+
