@@ -24,7 +24,7 @@
 		<h1>Power</h1>
 		<div class="row">
 			<div class="col-xs-4">Battery</div>
-			<div class="col-xs-4">{{battery.charging ? battery.chargingTime : battery.dischargingTime}}</div>
+			<div class="col-xs-4">{{battery.charging ? battery.chargingTime : battery.dischargingTime | duration}}</div>
 			<div class="col-xs-4">{{battery.levelPercent}}%</div>
 		</div>
 		<div class="row">

@@ -63,29 +63,12 @@ app.controller('conkerController', function($scope) {
 			$scope.$apply(function() {
 				$scope.battery.charging = battery.charging;
 				$scope.battery.levelPercent = Math.ceil(battery.level * 100);
-
-				if (isFinite(battery.chargingTime)) {
-					var duration = moment.duration(battery.chargingTime, 'seconds');
-					$scope.battery.chargingTime =
-						duration.hours() + 'h ' +
-						duration.minutes() + 'm ' +
-						duration.seconds() + 's';
-				} else {
-					$scope.battery.chargingTime = null;
-				}
-
-				if (isFinite(battery.dischargingTime)) {
-					duration = moment.duration(battery.dischargingTime, 'seconds');
-					$scope.battery.dischargingTime =
-						duration.hours() + 'h ' +
-						duration.minutes() + 'm ' +
-						duration.seconds() + 's';
-				} else {
-					$scope.battery.dischargingTime = null;
-				}
+				$scope.battery.chargingTime = battery.chargingTime;
+				$scope.battery.dischargingTime = battery.dischargingTime;
 			});
 		};
 
+		// Register ourselves as the battery update handler
 		battery.onchargingchange
 		= battery.onchargingtimechange
 		= battery.ondischargingtimechange
