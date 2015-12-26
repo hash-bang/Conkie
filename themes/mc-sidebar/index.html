@@ -41,14 +41,18 @@
 		</div>
 
 		<h1>Network</h1>
-		<div ng-repeat="interface in net track by interface.name">
+		<div ng-repeat="adapter in net track by adapter.interface">
 			<div class="row">
-				<div class="col-xs-6">{{interface.name}}</div>
-				<div class="col-xs-6">{{interface.ip_address}}</div>
+				<div class="col-xs-6">{{adapter.interface}}</div>
+				<div class="col-xs-6">{{adapter.address}}</div>
 			</div>
-			<div ng-if="interface.type == 'Wireless'" class="row">
+			<div ng-if="adapter.type == 'wireless'" class="row">
 				<div class="col-xs-6">essid</div>
-				<div class="col-xs-6">!interface.essid</div>
+				<div class="col-xs-6">{{adapter.ssid}}</div>
+			</div>
+			<div ng-if="adapter.type == 'wireless'" class="row">
+				<div class="col-xs-6">conn quality</div>
+				<div class="col-xs-6">{{adapter.frequency}}Ghz / {{adapter.quality}}</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-6">!WLAN-BANDWIDTH-GRAPH</div>

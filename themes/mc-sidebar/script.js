@@ -110,6 +110,7 @@ app.controller('conkerController', function($scope) {
 
 				// Chart updates {{{
 				if (isFinite($scope.ram.used)) {
+					if ($scope.ram.total) $scope.charts.ram.options.xAxis.max = $scope.ram.total;
 					$scope.charts.ram.series[0].data.push($scope.ram.used);
 					if ($scope.charts.ram.series[0].data.length > options.chartHistory) $scope.charts.ram.series[0].data.shift();
 				}
@@ -136,6 +137,12 @@ app.controller('conkerController', function($scope) {
 				margin: [2, 0, 2, 0],
 				backgroundColor: null,
 				borderWidth: 0,
+				style: {
+					border: '1px solid white',
+				},
+			},
+			credits: {
+				enabled: false
 			},
 			title: {
 				text: ''
@@ -170,7 +177,7 @@ app.controller('conkerController', function($scope) {
 			},
 			plotOptions: {
 				series: {
-					animation: true,
+					animation: false,
 					lineWidth: 1,
 					shadow: false,
 					states: {
@@ -196,14 +203,17 @@ app.controller('conkerController', function($scope) {
 		},
 	};
 
-	$scope.charts.ram = _.defaults({
+	$scope.charts.ram = _.defaultsDeep({
 		series: [{
 			data: [],
 			pointStart: 1,
 		}],
 	}, $scope.charts.template);
 
-	$scope.charts.cpu = _.defaults({
+	$scope.charts.cpu = _.defaultsDeep({
+		xAxis: {
+			max: 100,
+		},
 		series: [{
 			data: [],
 			pointStart: 1,

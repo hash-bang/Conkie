@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var async = require('async-chainable');
 var asyncExec = require('async-chainable-exec');
 var childProcess = require('child_process');
@@ -9,6 +10,7 @@ var fspath = require('path');
 var os = require('os');
 var network = require('network');
 var temp = require('temp').track();
+var wirelessTools = require('wireless-tools');
 
 var app;
 var win;
@@ -49,15 +51,6 @@ function updateCycle(finish) {
 
 	async()
 		.parallel([
-			// .net {{{
-			function(next) {
-				network.get_interfaces_list(function(err, ifaces) {
-					if (err) return next(err);
-					data.net = ifaces;
-					next();
-				});
-			},
-			// }}}
 			// .dropbox {{{
 			function(next) {
 				async()
@@ -68,6 +61,45 @@ function updateCycle(finish) {
 						next();
 					})
 					.end(next);
+			},
+			// }}}
+			// .net {{{
+			function(next) {
+				wirelessTools.ifconfig.status(function(err, ifaces) {
+					if (err) return next(err);
+					data.net = ifaces;
+					next();
+				});
+			},
+			// }}}
+			// Wlan adapers {{{
+			function(next) {
+				var self = this;
+				wirelessTools.iwconfig.status(function(err, ifaces) {
+					self.iwconfig = ifaces;
+					next();
+				});
+			},
+			// }}}
+		])
+		.parallel([
+			// Post processing of data {{{
+			function(next) {
+				// Merge .net + Wlan adapter info {{{
+				async()
+					.set('iwconfig', this.iwconfig)
+					.forEach(data.net, function(next, adapter) {
+						var wlan = _.find(this.iwconfig, {interface: adapter.interface });
+						if (wlan) { // Matching wlan adapter
+							adapter.type = 'wireless';
+							_.merge(adapter, wlan);
+						} else { // Boring ethernet
+							adapter.type = 'ethernet';
+						}
+						next();
+					})
+					.end(next);
+				// }}}
 			},
 			// }}}
 		])

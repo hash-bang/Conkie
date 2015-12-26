@@ -22,15 +22,44 @@ e.g.
 -----
 An collection (array of objects) of all active network connections.
 
-Each array item should have the following layout:
+Most network interfaces are populated via `ipconfig` but wireless devices have their information merged with `iwconfig`.
+
+The result should resemble the following:
 
 ```
-	{
-		name: 'eth0',
-		ip_address: '10.0.1.3',
-		mac_address: '56:e5:f9:e4:38:1d',
-		type: 'Wired' // or 'Wireless'
-	}
+	[
+		{
+			type: 'ethernet',
+			interface: 'lo',
+			link: 'local',
+			ipv6_address: '::1/128',
+			ipv4_address: '127.0.0.1',
+			ipv4_subnet_mask: '255.0.0.0',
+			up: true,
+			running: true,
+			loopback: true
+		},
+		{
+			type: 'wireless',
+			interface: 'wlp3s0',
+			link: 'ethernet',
+			address: '66:66:66:66:66:66',
+			ipv6_address: '6666::6666:6666:6666:6666/64',
+			ipv4_address: '192.168.1.1',
+			ipv4_broadcast: '192.168.1.255',
+			ipv4_subnet_mask: '255.255.255.0',
+			up: true,
+			broadcast: true,
+			running: true,
+			multicast: true,
+			access_point: '66:66:66:66:66:67',
+			frequency: 2.462,
+			ieee: '802.11abgn',
+			mode: 'managed',
+			quality: 70,
+			ssid: 'My WiFi point'
+		}
+	]
 ```
 
 
