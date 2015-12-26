@@ -1,4 +1,17 @@
+// User configurable options
+var options = {
+	chartHistory: 50, // How many spark line chart positions to retain before removing them
+};
+
+
+
+// Code only below this line - here be dragons
+
+
+var Highcharts = require('highcharts');
+
 var app = angular.module('app', [
+	'highcharts-ng',
 ]);
 
 app.filter('duration', function() {
@@ -94,7 +107,106 @@ app.controller('conkerController', function($scope) {
 				$scope.ram = data.ram;
 				$scope.net = data.net;
 				$scope.dropbox = data.dropbox;
+
+				// Chart updates {{{
+				if (isFinite($scope.ram.used)) {
+					$scope.charts.ram.series[0].data.push($scope.ram.used);
+					if ($scope.charts.ram.series[0].data.length > options.chartHistory) $scope.charts.ram.series[0].data.shift();
+				}
+
+				if (isFinite($scope.system.cpuUsage)) {
+					$scope.charts.cpu.series[0].data.push($scope.system.cpuUsage);
+					if ($scope.charts.cpu.series[0].data.length > options.chartHistory) $scope.charts.cpu.series[0].data.shift();
+				}
+				// }}}
 			});
 		});
 	// }}}
+
+	$scope.charts = {};
+	$scope.charts.template = {
+		size: {
+			width: 120,
+			height: 20,
+		},
+		options: {
+			chart: {
+				borderWidth: 0,
+				type: 'area',
+				margin: [2, 0, 2, 0],
+				backgroundColor: null,
+				borderWidth: 0,
+			},
+			title: {
+				text: ''
+			},
+			xAxis: {
+				labels: {
+					enabled: false
+				},
+				title: {
+					text: null
+				},
+				startOnTick: false,
+				endOnTick: false,
+				tickPositions: [],
+			},
+			yAxis: {
+				labels: {
+					enabled: false
+				},
+				title: {
+					text: null
+				},
+				endOnTick: false,
+				startOnTick: false,
+				tickPositions: [0],
+			},
+			legend: {
+				enabled: false,
+			},
+			tooltip: {
+				enabled: false,
+			},
+			plotOptions: {
+				series: {
+					animation: true,
+					lineWidth: 1,
+					shadow: false,
+					states: {
+						hover: {
+							lineWidth: 1
+						}
+					},
+					marker: {
+						radius: 1,
+						states: {
+							hover: {
+								radius: 2
+							}
+						}
+					},
+					fillOpacity: 0.25
+				},
+				column: {
+					negativeColor: '#910000',
+					borderColor: 'silver'
+				},
+			},
+		},
+	};
+
+	$scope.charts.ram = _.defaults({
+		series: [{
+			data: [],
+			pointStart: 1,
+		}],
+	}, $scope.charts.template);
+
+	$scope.charts.cpu = _.defaults({
+		series: [{
+			data: [],
+			pointStart: 1,
+		}],
+	}, $scope.charts.template);
 });

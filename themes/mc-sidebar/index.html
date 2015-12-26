@@ -4,10 +4,14 @@
 		<meta charset="UTF-8">
 		<title>Hello World!</title>
 
+		<script src="<%=root%>/bower_components/jquery/dist/jquery.min.js"></script>
+		<script src="<%=root%>/bower_components/lodash/lodash.min.js"></script>
 		<link rel="stylesheet" href="<%=root%>/bower_components/font-awesome/css/font-awesome.min.css">
 		<link href="<%=root%>/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
 		<script src="<%=root%>/bower_components/moment/min/moment.min.js"></script>
-		<script src="<%=root%>/bower_components/angular/angular<%=debugMode ? '.min' : ''%>.js"></script>
+		<script src="<%=root%>/bower_components/angular/angular<%=!debugMode ? '.min' : ''%>.js"></script>
+		<script src="<%=root%>/bower_components/highcharts/lib/highcharts.js"></script>
+		<script src="<%=root%>/bower_components/highcharts-ng/dist/highcharts-ng.js"></script>
 		<link href="<%=themeRoot%>/style.css" rel="stylesheet" type="text/css"/>
 		<script src="<%=themeRoot%>/script.js"></script>
 	</head>
@@ -57,7 +61,9 @@
 
 		<h1>RAM</h1>
 		<div class="row">
-			<div class="col-xs-6">!WLAN-RAM-GRAPH</div>
+			<div class="col-xs-6">
+				<highchart config="charts.ram"></highchart>
+			</div>
 			<div class="col-xs-6">
 				<div class="row">{{ram.free | byteSize}} Free</div>
 				<div class="row">{{ram.used | byteSize}} Used</div>
@@ -66,7 +72,9 @@
 
 		<h1>CPU</h1>
 		<div class="row">
-			<div class="col-xs-6">!CPU-GRAPH</div>
+			<div class="col-xs-6">
+				<highchart config="charts.cpu"></highchart>
+			</div>
 			<div class="col-xs-6">
 				<div class="row">{{system.cpuUsage}}</div>
 				<div class="row">{{system.load[0] | number:2}} {{system.load[1] | number:2}} {{system.load[2] | number:2}}</div>
