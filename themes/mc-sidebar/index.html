@@ -15,11 +15,11 @@
 		<div class="picture">
 			<span class="picture-slot0">!TIME</span>
 			<span class="picture-slot1">{{system.hostname}}</span>
-			<span class="picture-slot2">!SYSTEM.TEMP</span>
-			<span class="picture-slot3">!CPU.USE</span>
-			<span class="picture-slot4">!DISK.USE</span>
-			<span class="picture-slot5">{{ram.used | byteSize}}</span>
-			<span class="picture-slot6">!NET.DOWNSPEED</span>
+			<span class="picture-slot2"><h1>Temp</h1>!SYSTEM.TEMP</span>
+			<span class="picture-slot3"><h1>CPU</h1>{{system.cpuUsage}}%</span>
+			<span class="picture-slot4"><h1>HDfree</h1>!DISK.USE</span>
+			<span class="picture-slot5"><h1>RAM</h1>{{ram.used | byteSize}}</span>
+			<span class="picture-slot6"><h1>Down</h1>!NET.DOWNSPEED</span>
 		</div>
 		<h1>Power</h1>
 		<div class="row">
@@ -68,7 +68,7 @@
 		<div class="row">
 			<div class="col-xs-6">!CPU-GRAPH</div>
 			<div class="col-xs-6">
-				<div class="row">!CPU-USED-PERCENT</div>
+				<div class="row">{{system.cpuUsage}}</div>
 				<div class="row">{{system.load[0] | number:2}} {{system.load[1] | number:2}} {{system.load[2] | number:2}}</div>
 			</div>
 		</div>

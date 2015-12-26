@@ -1,6 +1,7 @@
 var async = require('async-chainable');
 var asyncExec = require('async-chainable-exec');
 var childProcess = require('child_process');
+var cpuUsage = require('cpu-usage');
 var ejs = require('ejs');
 var electron = require('electron');
 var fs = require('fs');
@@ -17,11 +18,17 @@ var program = {
 	theme: __dirname + '/themes/mc-sidebar/index.html',
 };
 
+// Storage for dynamically updated values {{{
+var cpuUsage;
+// }}}
+
 // Data update cycle {{{
 function updateCycle(finish) {
 	// Base config structure {{{
+	// NOTE: If this gets updated remember to also update the main README.md API reference
 	var data = {
 		system: {
+			cpuUsage, cpuUsage, // Value gets updated via cpuUsage NPM module
 			hostname: os.hostname(),
 			load: os.loadavg(),
 			platform: os.platform(),
@@ -73,13 +80,24 @@ function updateCycle(finish) {
 }
 
 function updateRepeater() {
-	updateCycle(function(err) {
-		if (err) {
-			console.log('Update cycle ERROR', err);
-		} else {
-			setTimeout(updateRepeater, 1000);
-		}
+	// Start main cycle update process {{{
+	var updateCycleFunc = function() {
+		updateCycle(function(err) {
+			if (err) {
+				console.log('Update cycle ERROR', err);
+			} else {
+				setTimeout(updateCycleFunc, 1000);
+			}
+		});
+	};
+	setTimeout(updateCycleFunc, 1000); // Initial kickoff
+	// }}}
+
+	// Start supplemental processes {{{
+	cpuUsage(1000, function(load) {
+		cpuUsage = load;
 	});
+	// }}}
 }
 // }}}
 
