@@ -12,3 +12,77 @@ h1 {
 h1, h2 {
 	font-size: 12px;
 }
+
+/* Feature picture {{{ */
+.picture {
+	display: block;
+	position: relative;
+	background: url('file:///home/mc/.conky/chem-Glitch/lsd.png') no-repeat top left;
+	background-size: 100%;
+	width: 190px;
+	height: 309px;
+	margin: 8px auto 0;
+}
+
+.picture .picture-slot0 {
+	position: absolute;
+	left: 0px;
+	top: 94px;
+	font-size: 28px;
+	font-weight: bold;
+}
+
+.picture .picture-slot1 {
+	position: absolute;
+	left: 135px;
+	top: -7px;
+	font-size: 15px;
+	font-weight: bold;
+	color: #00d9ff;
+}
+
+.picture .picture-slot2 {
+	position: absolute;
+	left: 33px;
+	top: 30px;
+	text-align: center;
+	width: 60px;
+	overflow: hidden;
+}
+
+.picture .picture-slot3 {
+	position: absolute;
+	left: 100px;
+	top: 133px;
+	text-align: center;
+	width: 60px;
+	overflow: hidden;
+}
+
+.picture .picture-slot4 {
+	position: absolute;
+	left: 4px;
+	top: 186px;
+	text-align: center;
+	width: 60px;
+	overflow: hidden;
+}
+
+.picture .picture-slot5 {
+	position: absolute;
+	left: 64px;
+	top: 186px;
+	text-align: center;
+	width: 66px;
+	overflow: hidden;
+}
+
+.picture .picture-slot6 {
+	position: absolute;
+	left: 29px;
+	top: 235px;
+	text-align: center;
+	width: 66px;
+	overflow: hidden;
+}
+/* }}} */

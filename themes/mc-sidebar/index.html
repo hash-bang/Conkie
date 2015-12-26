@@ -12,9 +12,15 @@
 		<script src="<%=themeRoot%>/script.js"></script>
 	</head>
 	<body ng-app="app" ng-controller="conkerController">
-		<pre>
-			{{net}}
-		</pre>
+		<div class="picture">
+			<span class="picture-slot0">!TIME</span>
+			<span class="picture-slot1">{{system.hostname}}</span>
+			<span class="picture-slot2">!SYSTEM.TEMP</span>
+			<span class="picture-slot3">!CPU.USE</span>
+			<span class="picture-slot4">!DISK.USE</span>
+			<span class="picture-slot5">{{ram.used | byteSize}}</span>
+			<span class="picture-slot6">!NET.DOWNSPEED</span>
+		</div>
 		<h1>Power</h1>
 		<div class="row">
 			<div class="col-xs-4">Battery</div>
@@ -23,7 +29,7 @@
 		</div>
 		<div class="row">
 			<div class="col-xs-6">Power Profile</div>
-			<div class="col-xs-6">FIXME:BAT-PROFILE</div>
+			<div class="col-xs-6">!BAT-PROFILE</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-6">Uptime</div>
@@ -38,20 +44,20 @@
 			</div>
 			<div ng-if="interface.type == 'Wireless'" class="row">
 				<div class="col-xs-6">essid</div>
-				<div class="col-xs-6">FIXME:interface.essid</div>
+				<div class="col-xs-6">!interface.essid</div>
 			</div>
 			<div class="row">
-				<div class="col-xs-6">FIXME:WLAN-BANDWIDTH-GRAPH</div>
+				<div class="col-xs-6">!WLAN-BANDWIDTH-GRAPH</div>
 				<div class="col-xs-6">
-					<div class="row">FIXME:WLAN-UP-SPEED</div>
-					<div class="row">FIXME:WLAN-DOWN-SPEED</div>
+					<div class="row">!WLAN-UP-SPEED</div>
+					<div class="row">!WLAN-DOWN-SPEED</div>
 				</div>
 			</div>
 		</div>
 
 		<h1>RAM</h1>
 		<div class="row">
-			<div class="col-xs-6">FIXME:WLAN-RAM-GRAPH</div>
+			<div class="col-xs-6">!WLAN-RAM-GRAPH</div>
 			<div class="col-xs-6">
 				<div class="row">{{ram.free | byteSize}} Free</div>
 				<div class="row">{{ram.used | byteSize}} Used</div>
@@ -60,9 +66,9 @@
 
 		<h1>CPU</h1>
 		<div class="row">
-			<div class="col-xs-6">FIXME:CPU-GRAPH</div>
+			<div class="col-xs-6">!CPU-GRAPH</div>
 			<div class="col-xs-6">
-				<div class="row">FIXME:CPU-USED-PERCENT</div>
+				<div class="row">!CPU-USED-PERCENT</div>
 				<div class="row">{{system.load[0] | number:2}} {{system.load[1] | number:2}} {{system.load[2] | number:2}}</div>
 			</div>
 		</div>
@@ -73,18 +79,18 @@
 				<div class="col-xs-4"><h2>RAM%</h2></div>
 			</div>
 			<div class="row">
-				<div class="col-xs-4">FIXME:PROC1</div>
-				<div class="col-xs-4">FIXME:PROC1-CPU</div>
-				<div class="col-xs-4">FIXME:PROC1-RAM</div>
+				<div class="col-xs-4">!PROC1</div>
+				<div class="col-xs-4">!PROC1-CPU</div>
+				<div class="col-xs-4">!PROC1-RAM</div>
 			</div>
 		</div>
 
 		<h1>Disk I/O</h1>
 		<div class="row">
-			<div class="col-xs-6">FIXME:DISK-GRAPH</div>
+			<div class="col-xs-6">!DISK-GRAPH</div>
 			<div class="col-xs-6">
-				<div class="row">FIXME:DISK-READ</div>
-				<div class="row">FIXME:DISK-WRITE</div>
+				<div class="row">!DISK-READ</div>
+				<div class="row">!DISK-WRITE</div>
 			</div>
 		</div>
 		<div class="row">
@@ -94,9 +100,9 @@
 				<div class="col-xs-4"><h2>Write</h2></div>
 			</div>
 			<div class="row">
-				<div class="col-xs-4">FIXME:PROC1</div>
-				<div class="col-xs-4">FIXME:PROC1-READ</div>
-				<div class="col-xs-4">FIXME:PROC1-WRITE</div>
+				<div class="col-xs-4">!PROC1</div>
+				<div class="col-xs-4">!PROC1-READ</div>
+				<div class="col-xs-4">!PROC1-WRITE</div>
 			</div>
 		</div>
 
