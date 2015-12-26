@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var async = require('async-chainable');
 var asyncExec = require('async-chainable-exec');
+var bwmNg = require('bwm-ng');
 var childProcess = require('child_process');
 var cpuUsage = require('cpu-usage');
 var ejs = require('ejs');
@@ -21,6 +22,7 @@ var program = {
 
 // Storage for dynamically updated values {{{
 var cpuUsage;
+var ifSpeeds = {};
 // }}}
 
 // Data update cycle {{{
@@ -80,14 +82,26 @@ function updateCycle(finish) {
 				});
 			},
 			// }}}
+			// Network bandwidth {{{
+			function(next) {
+				bwmNg.check(function(iface, bytesDown, bytesUp) {
+					ifSpeeds[iface] = {
+						downSpeed: bytesDown,
+						upSpeed: bytesUp,
+					};
+				});
+				next();
+			},
+			// }}}
 		])
 		.parallel([
 			// Post processing of data {{{
+			// Merge .net + Wlan adapter info {{{
 			function(next) {
-				// Merge .net + Wlan adapter info {{{
 				async()
 					.set('iwconfig', this.iwconfig)
 					.forEach(data.net, function(next, adapter) {
+						// Match against known WLAN adapters to merge wireless info {{{
 						var wlan = _.find(this.iwconfig, {interface: adapter.interface });
 						if (wlan) { // Matching wlan adapter
 							adapter.type = 'wireless';
@@ -95,11 +109,18 @@ function updateCycle(finish) {
 						} else { // Boring ethernet
 							adapter.type = 'ethernet';
 						}
+						// }}}
+						// Match against ifSpeeds to provide bandwidth speeds {{{
+						if (ifSpeeds[adapter.interface]) {
+							adapter.downSpeed = ifSpeeds[adapter.interface].downSpeed;
+							adapter.upSpeed = ifSpeeds[adapter.interface].upSpeed;
+						}
+						// }}}
 						next();
 					})
 					.end(next);
-				// }}}
 			},
+			// }}}
 			// }}}
 		])
 		.then(function(next) {

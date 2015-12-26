@@ -5,6 +5,24 @@ NodeJS + Electron desktop widgets.
 This project is designed to replace the venerable [Conky project](https://github.com/brndnmtthws/conky) by Brenden Matthews with a Browser based widget library.
 
 
+Installing
+==========
+
+	sudo apt-get install bwm-ng
+
+
+Cross platform dev
+==================
+Conker relies on a few things to get going:
+
+* `ifconfig` / `iwconfig` - Base network interface libraries
+* `bwm-ng` - Network bandwidth monitoring
+
+
+If you know a way to provide cross-platform support for these modules please either get in touch or submit a pull-request.
+
+
+
 Theme API Reference
 ===================
 The following objects are provided as callbacks within the internal IPC `updateState` listner.
@@ -37,7 +55,9 @@ The result should resemble the following:
 			ipv4_subnet_mask: '255.0.0.0',
 			up: true,
 			running: true,
-			loopback: true
+			loopback: true,
+			downSpeed: 0,
+			upSpeed: 0,
 		},
 		{
 			type: 'wireless',
@@ -57,7 +77,9 @@ The result should resemble the following:
 			ieee: '802.11abgn',
 			mode: 'managed',
 			quality: 70,
-			ssid: 'My WiFi point'
+			ssid: 'My WiFi point',
+			downSpeed: 0,
+			upSpeed: 0,
 		}
 	]
 ```

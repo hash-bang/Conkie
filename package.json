@@ -12,6 +12,7 @@
   "dependencies": {
     "async-chainable": "^1.7.15",
     "async-chainable-exec": "^1.3.0",
+    "bwm-ng": "^0.1.1",
     "cpu-usage": "^0.1.0",
     "ejs": "^2.3.4",
     "highcharts": "^4.2.1",

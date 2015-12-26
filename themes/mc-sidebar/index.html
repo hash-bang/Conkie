@@ -44,7 +44,7 @@
 		<div ng-repeat="adapter in net track by adapter.interface">
 			<div class="row">
 				<div class="col-xs-6">{{adapter.interface}}</div>
-				<div class="col-xs-6">{{adapter.address}}</div>
+				<div class="col-xs-6">{{adapter.ipv4_address || adapter.ipv6_address}}</div>
 			</div>
 			<div ng-if="adapter.type == 'wireless'" class="row">
 				<div class="col-xs-6">essid</div>
@@ -57,8 +57,8 @@
 			<div class="row">
 				<div class="col-xs-6">!WLAN-BANDWIDTH-GRAPH</div>
 				<div class="col-xs-6">
-					<div class="row">!WLAN-UP-SPEED</div>
-					<div class="row">!WLAN-DOWN-SPEED</div>
+					<div class="row">{{adapter.upSpeed | byteSize}} Up</div>
+					<div class="row">{{adapter.downSpeed | byteSize}} Dn</div>
 				</div>
 			</div>
 		</div>
