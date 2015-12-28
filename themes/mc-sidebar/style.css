@@ -3,7 +3,7 @@ body {
 	color: white;
 	font-family: Zekton, Sans;
 	font-size: 10px;
-	margin: 0 15px 0 0;
+	margin: 0;
 	overflow: hidden;
 }
 
@@ -35,7 +35,7 @@ h1::after {
 
 /* .group-spacing - if two occurances are next to each other add vertical spacing {{{ */
 .group-spacing + .group-spacing {
-	margin-top: 5px;
+	margin-top: 10px;
 }
 /* }}} */
 
@@ -117,4 +117,14 @@ h1::after {
 	width: 66px;
 	overflow: hidden;
 }
+/* }}} */
+
+/* BUGFIX: Grid padding for Bootstrap {{{ */
+.row {
+	margin: 0;
+}
+
+.col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12 {
+	padding: 0;
+};
 /* }}} */

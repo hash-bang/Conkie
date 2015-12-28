@@ -38,7 +38,7 @@ app.filter('duration', function() {
 
 app.filter('byteSize', function() {
 	return function(value) {
-		if (!value || !isFinite(value)) return;
+		if (!value || !isFinite(value)) return '0B';
 
 		var exponent;
 		var unit;
@@ -99,28 +99,53 @@ app.controller('conkerController', function($scope) {
 	$scope.system;
 	$scope.ram;
 	$scope.net;
+	$scope.dropbox;
 	// }}}
 
 	// Bind to IPC message bus to recieve backend updates {{{
 	require('electron').ipcRenderer
 		.on('updateState', function(e, data) {
 			$scope.$apply(function() {
+				// .system {{{
 				$scope.system = data.system;
-				$scope.ram = data.ram;
-				$scope.net = data.net;
-				$scope.dropbox = data.dropbox;
+				if (isFinite($scope.system.cpuUsage)) {
+					$scope.charts.cpu.series[0].data.push($scope.system.cpuUsage);
+					if ($scope.charts.cpu.series[0].data.length > options.chartHistory) $scope.charts.cpu.series[0].data.shift();
+				}
+				// }}}
 
-				// Chart updates {{{
+				// .ram {{{
+				$scope.ram = data.ram;
 				if (isFinite($scope.ram.used)) {
 					if ($scope.ram.total) $scope.charts.ram.options.xAxis.max = $scope.ram.total;
 					$scope.charts.ram.series[0].data.push($scope.ram.used);
 					if ($scope.charts.ram.series[0].data.length > options.chartHistory) $scope.charts.ram.series[0].data.shift();
 				}
+				// }}}
 
-				if (isFinite($scope.system.cpuUsage)) {
-					$scope.charts.cpu.series[0].data.push($scope.system.cpuUsage);
-					if ($scope.charts.cpu.series[0].data.length > options.chartHistory) $scope.charts.cpu.series[0].data.shift();
-				}
+				// .net {{{
+				$scope.net = data.net;
+
+				data.net.forEach(function(adapter) {
+					// Not seen this adapter before - create a chart object {{{
+					if (!$scope.charts[adapter.interface]) $scope.charts[adapter.interface] = _.defaultsDeep({
+						series: [{
+							data: [],
+							pointStart: 1,
+						}],
+					}, $scope.charts.template);
+					// }}}
+					// Append bandwidth data to the chart {{{
+					$scope.charts[adapter.interface].series[0].data.push(adapter.downSpeed);
+					if ($scope.charts[adapter.interface].series[0].data.length > options.chartHistory) $scope.charts[adapter.interface].series[0].data.shift();
+					console.log('DOWN', adapter.interface, $scope.charts[adapter.interface].series[0].data);
+					// }}}
+				});
+				// }}}
+
+				// MISC {{{
+				$scope.dropbox = data.dropbox;
+				// }}}
 				// }}}
 			});
 		});
