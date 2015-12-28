@@ -78,9 +78,6 @@ app.controller('conkerController', function($scope) {
 				$scope.battery.levelPercent = Math.ceil(battery.level * 100);
 				$scope.battery.chargingTime = battery.chargingTime;
 				$scope.battery.dischargingTime = battery.dischargingTime;
-
-				$scope.charts.battery.series[0].data.push($scope.battery.levelPercent);
-				if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
 			});
 		};
 
@@ -118,7 +115,7 @@ app.controller('conkerController', function($scope) {
 				// .ram {{{
 				$scope.ram = data.ram;
 				if (isFinite($scope.ram.used)) {
-					if ($scope.ram.total) $scope.charts.ram.options.xAxis.max = $scope.ram.total;
+					if ($scope.ram.total) $scope.charts.ram.options.yAxis.max = $scope.ram.total;
 					$scope.charts.ram.series[0].data.push($scope.ram.used);
 					if ($scope.charts.ram.series[0].data.length > options.chartHistory) $scope.charts.ram.series[0].data.shift();
 				}
@@ -137,11 +134,19 @@ app.controller('conkerController', function($scope) {
 					}, $scope.charts.template);
 					// }}}
 					// Append bandwidth data to the chart {{{
-					$scope.charts[adapter.interface].series[0].data.push(adapter.downSpeed);
-					if ($scope.charts[adapter.interface].series[0].data.length > options.chartHistory) $scope.charts[adapter.interface].series[0].data.shift();
-					console.log('DOWN', adapter.interface, $scope.charts[adapter.interface].series[0].data);
+					if (isFinite(adapter.downSpeed)) {
+						$scope.charts[adapter.interface].series[0].data.push(adapter.downSpeed);
+						if ($scope.charts[adapter.interface].series[0].data.length > options.chartHistory) $scope.charts[adapter.interface].series[0].data.shift();
+					}
 					// }}}
 				});
+				// }}}
+
+				// .battery {{{
+				if ($scope.battery && isFinite($scope.battery.levelPercent)) {
+					$scope.charts.battery.series[0].data.push($scope.battery.levelPercent);
+					if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
+				}
 				// }}}
 
 				// MISC {{{
@@ -236,7 +241,8 @@ app.controller('conkerController', function($scope) {
 	};
 
 	$scope.charts.battery = _.defaultsDeep({
-		xAxis: {
+		yAxis: {
+			min: 0,
 			max: 100,
 		},
 		series: [{
@@ -246,6 +252,9 @@ app.controller('conkerController', function($scope) {
 	}, $scope.charts.template);
 
 	$scope.charts.ram = _.defaultsDeep({
+		yAxis: {
+			min: 0,
+		},
 		series: [{
 			data: [],
 			pointStart: 1,
@@ -253,7 +262,8 @@ app.controller('conkerController', function($scope) {
 	}, $scope.charts.template);
 
 	$scope.charts.cpu = _.defaultsDeep({
-		xAxis: {
+		yAxis: {
+			min: 0,
 			max: 100,
 		},
 		series: [{
