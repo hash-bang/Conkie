@@ -45,7 +45,7 @@
 		</div>
 
 		<h1>Network</h1>
-		<div ng-repeat="adapter in net track by adapter.interface">
+		<div ng-repeat="adapter in net track by adapter.interface" class="group-spacing">
 			<div class="row">
 				<div class="col-xs-6 text-left text-heading">{{adapter.interface}}</div>
 				<div class="col-xs-6 text-right">{{adapter.ipv4_address || adapter.ipv6_address}}</div>

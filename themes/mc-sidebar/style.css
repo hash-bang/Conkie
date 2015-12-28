@@ -2,7 +2,7 @@ body {
 	background: #981105;
 	color: white;
 	font-family: Zekton, Sans;
-	font-size: 12px;
+	font-size: 10px;
 	margin: 0 15px 0 0;
 	overflow: hidden;
 }
@@ -31,6 +31,12 @@ h1::after {
 	width: 500px;
 }
 /* }}} */
+/* }}} */
+
+/* .group-spacing - if two occurances are next to each other add vertical spacing {{{ */
+.group-spacing + .group-spacing {
+	margin-top: 5px;
+}
 /* }}} */
 
 /* Feature picture {{{ */
