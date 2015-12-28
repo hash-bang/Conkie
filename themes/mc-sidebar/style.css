@@ -16,12 +16,12 @@ h1, h2 {
 	font-size: 12px;
 }
 
-/* Horizontal line after each H1 element {{{ */
-h1 {
+/* .text-rule - Horizontal line after each element {{{ */
+.text-rule {
 	position: relative;
 }
 
-h1::after {
+.text-rule::after {
 	content: "";
 	margin-left: 5px;
 	position: absolute;

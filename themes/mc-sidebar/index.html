@@ -25,7 +25,7 @@
 			<span class="picture-slot5"><h1>RAM</h1>{{ram.used | byteSize}}</span>
 			<span class="picture-slot6"><h1>Down</h1>{{netTotal.downSpeed | byteSize}}</span>
 		</div>
-		<h1>Power</h1>
+		<h1 class="text-rule">Power</h1>
 		<div class="row">
 			<div class="col-xs-9">
 				<highchart config="charts.battery"></highchart>
@@ -44,7 +44,7 @@
 			<div class="col-xs-9 text-right">{{system.uptime | duration}}</div>
 		</div>
 
-		<h1>Network</h1>
+		<h1 class="text-rule">Network</h1>
 		<div ng-repeat="adapter in net track by adapter.interface" class="group-spacing">
 			<div class="row">
 				<div class="col-xs-3 text-left text-heading">{{adapter.interface}}</div>
@@ -69,7 +69,7 @@
 			</div>
 		</div>
 
-		<h1>RAM</h1>
+		<h1 class="text-rule">RAM</h1>
 		<div class="row">
 			<div class="col-xs-9">
 				<highchart config="charts.ram"></highchart>
@@ -80,7 +80,7 @@
 			</div>
 		</div>
 
-		<h1>CPU</h1>
+		<h1 class="text-rule">CPU</h1>
 		<div class="row">
 			<div class="col-xs-9">
 				<highchart config="charts.cpu"></highchart>
@@ -103,7 +103,7 @@
 			</div>
 		</div>
 
-		<h1>Disk I/O</h1>
+		<h1 class="text-rule">Disk I/O</h1>
 		<div class="row">
 			<div class="col-xs-9">!DISK-GRAPH</div>
 			<div class="col-xs-3 text-right">
@@ -124,7 +124,7 @@
 			</div>
 		</div>
 
-		<h1>Sync</h1>
+		<h1 class="text-rule">Sync</h1>
 		<div class="row">
 			<div class="col-xs-12">
 				<div ng-repeat="line in dropbox" ng-bind="line"></div>
