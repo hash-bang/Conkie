@@ -151,7 +151,7 @@ function updateCycle(finish) {
 			// }}}
 		])
 		.then(function(next) {
-			if (program.verbose > 2) console.log('STATS', data);
+			if (program.verbose > 2) console.log('STATS', JSON.stringify(data, null, '\t'));
 			win.webContents.send('updateState', data);
 			next();
 		})
