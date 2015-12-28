@@ -8,7 +8,7 @@ This project is designed to replace the venerable [Conky project](https://github
 Installing
 ==========
 
-	sudo apt-get install bwm-ng
+	sudo apt-get install bwm-ng lm-sensors
 
 
 Cross platform dev
@@ -102,4 +102,7 @@ The system object is made up of several values:
 * `system.hostname` - The hostname of the system e.g. `MyLaptop` / `localhost`
 * `system.load` - A three part array listing the 1, 5 and 15 minute load readings as floats
 * `system.platform` - Node compatible short platform name
+* `system.temperature` - Collection of system temperatures (assumes `sensors` is installed). See below for sub-keys
+* `system.temperature.main` - Main ambient system temperature
+* `system.temperature.cores` - Array of each CPU core temperature
 * `system.uptime` - The system uptime in seconds

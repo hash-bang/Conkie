@@ -17,9 +17,9 @@
 	</head>
 	<body ng-app="app" ng-controller="conkerController">
 		<div class="picture">
-			<span class="picture-slot0">!TIME</span>
+			<span class="picture-slot0">{{time.t24h}}</span>
 			<span class="picture-slot1">{{system.hostname}}</span>
-			<span class="picture-slot2"><h1>Temp</h1>!SYSTEM.TEMP</span>
+			<span class="picture-slot2"><h1>Temp</h1>{{system.temperature.main}}°C</span>
 			<span class="picture-slot3"><h1>CPU</h1>{{system.cpuUsage}}%</span>
 			<span class="picture-slot4"><h1>HDfree</h1>!DISK.USE</span>
 			<span class="picture-slot5"><h1>RAM</h1>{{ram.used | byteSize}}</span>

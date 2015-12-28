@@ -100,6 +100,7 @@ app.controller('conkerController', function($scope) {
 	$scope.ram;
 	$scope.net;
 	$scope.dropbox;
+	$scope.time = {};
 	// }}}
 
 	// Bind to IPC message bus to recieve backend updates {{{
@@ -146,6 +147,9 @@ app.controller('conkerController', function($scope) {
 				// MISC {{{
 				$scope.dropbox = data.dropbox;
 				// }}}
+
+				// .time {{{
+				$scope.time.t24h = moment().format('HH:mm');
 				// }}}
 			});
 		});

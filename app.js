@@ -45,6 +45,7 @@ function updateCycle(finish) {
 			load: os.loadavg(),
 			platform: os.platform(),
 			uptime: os.uptime(),
+			temperature: {},
 		},
 		ram: {
 			free: os.freemem(),
@@ -100,6 +101,23 @@ function updateCycle(finish) {
 					};
 				});
 				next();
+			},
+			// }}}
+			// .system.temperature {{{
+			function(next) {
+				var tempRe = /\+([^°]*)/g;
+				childProcess.exec('sensors', function(err, stdout, stderr) {
+					if (err) return next();
+					stdout.toString().split('\n').forEach(function(line) {
+						var temps = line.match(tempRe);
+						if (line.split(':')[0].toUpperCase().indexOf('PHYSICAL') != -1) data.system.temperature.main = parseFloat(temps);
+						if (line.split(':')[0].toUpperCase().indexOf('CORE ') != -1) {
+							if (!data.system.temperature.cores) data.system.temperature.cores = [];
+							data.system.temperature.cores.push(parseFloat(temps));
+						}
+					})
+					next();
+				});
 			},
 			// }}}
 		])
