@@ -23,7 +23,7 @@
 			<span class="picture-slot3"><h1>CPU</h1>{{system.cpuUsage}}%</span>
 			<span class="picture-slot4"><h1>HDfree</h1>!DISK.USE</span>
 			<span class="picture-slot5"><h1>RAM</h1>{{ram.used | byteSize}}</span>
-			<span class="picture-slot6"><h1>Down</h1>!NET.DOWNSPEED</span>
+			<span class="picture-slot6"><h1>Down</h1>{{netTotal.downSpeed | byteSize}}</span>
 		</div>
 		<h1>Power</h1>
 		<div class="row">

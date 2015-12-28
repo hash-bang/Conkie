@@ -142,6 +142,17 @@ app.controller('conkerController', function($scope) {
 				});
 				// }}}
 
+				// .netTotal {{{
+				$scope.netTotal = data.net.reduce(function(total, adapter) {
+					if (adapter.downSpeed) total.downSpeed += adapter.downSpeed;
+					if (adapter.upSpeed) total.upSpeed += adapter.upSpeed;
+					return total;
+				}, {
+					downSpeed: 0,
+					upSpeed: 0,
+				});
+				// }}}
+
 				// .battery {{{
 				if ($scope.battery && isFinite($scope.battery.levelPercent)) {
 					$scope.charts.battery.series[0].data.push($scope.battery.levelPercent);
