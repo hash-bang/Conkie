@@ -12,13 +12,22 @@ var os = require('os');
 var temp = require('temp').track();
 var wirelessTools = require('wireless-tools');
 
+// Global objects {{{
 var app;
 var win;
+// }}}
 
-var program = {
-	debug: false,
-	theme: __dirname + '/themes/mc-sidebar/index.html',
-};
+// Process command line args {{{
+var program = require('commander');
+
+program
+	.version(require('./package.json').version)
+	.option('-d, --debug', 'Enter debug mode. Show as window and enable dev-tools')
+	.option('-v, --verbose', 'Be verbose. Specify multiple times for increasing verbosity', function(i, v) { return v + 1 }, 0)
+	.option('-t, --theme [file]', 'Specify main theme HTML file', __dirname + '/themes/mc-sidebar/index.html')
+	.option('--no-color', 'Disable colors')
+	.parse(process.env.CONKER_ARGS ? JSON.parse(process.env.CONKER_ARGS) : '')
+// }}}
 
 // Storage for dynamically updated values {{{
 var cpuUsage;
@@ -124,7 +133,7 @@ function updateCycle(finish) {
 			// }}}
 		])
 		.then(function(next) {
-			console.log('DUMP UPDATE', data);
+			if (program.verbose > 2) console.log('STATS', data);
 			win.webContents.send('updateState', data);
 			next();
 		})
