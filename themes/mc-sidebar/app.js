@@ -78,15 +78,17 @@ app.controller('conkerController', function($scope) {
 				$scope.battery.levelPercent = Math.ceil(battery.level * 100);
 				$scope.battery.chargingTime = battery.chargingTime;
 				$scope.battery.dischargingTime = battery.dischargingTime;
+
+				$scope.charts.battery.series[0].data.push($scope.battery.levelPercent);
+				if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
 			});
 		};
 
 		// Register ourselves as the battery update handler
-		battery.onchargingchange
-		= battery.onchargingtimechange
-		= battery.ondischargingtimechange
-		= battery.onlevelchange
-		= batteryUpdate;
+		battery.addEventListener('chargingchange', batteryUpdate);
+		battery.addEventListener('levelchange', batteryUpdate);
+		battery.addEventListener('chargingtimechange', batteryUpdate);
+		battery.addEventListener('dischargingtimechange', batteryUpdate);
 
 		batteryUpdate();
 	});
@@ -124,11 +126,12 @@ app.controller('conkerController', function($scope) {
 		});
 	// }}}
 
+	// Charts {{{
 	$scope.charts = {};
 	$scope.charts.template = {
 		size: {
 			width: 120,
-			height: 20,
+			height: 35,
 		},
 		options: {
 			chart: {
@@ -203,6 +206,16 @@ app.controller('conkerController', function($scope) {
 		},
 	};
 
+	$scope.charts.battery = _.defaultsDeep({
+		xAxis: {
+			max: 100,
+		},
+		series: [{
+			data: [],
+			pointStart: 1,
+		}],
+	}, $scope.charts.template);
+
 	$scope.charts.ram = _.defaultsDeep({
 		series: [{
 			data: [],
@@ -219,4 +232,5 @@ app.controller('conkerController', function($scope) {
 			pointStart: 1,
 		}],
 	}, $scope.charts.template);
+	// }}}
 });

@@ -3,15 +3,35 @@ body {
 	color: white;
 	font-family: Zekton, Sans;
 	font-size: 12px;
+	margin: 0 15px 0 0;
+	overflow: hidden;
 }
 
-h1 {
+/* Headings {{{ */
+h1, .text-heading {
 	color: #00d9ff;
 }
 
 h1, h2 {
 	font-size: 12px;
 }
+
+/* Horizontal line after each H1 element {{{ */
+h1 {
+	position: relative;
+}
+
+h1::after {
+	content: "";
+	margin-left: 5px;
+	position: absolute;
+	height: 5px;
+	border-bottom: 2px solid white;
+	top: 3px;
+	width: 500px;
+}
+/* }}} */
+/* }}} */
 
 /* Feature picture {{{ */
 .picture {
