@@ -289,7 +289,7 @@ async()
 	})
 	.end(function(err) {
 		// Clean up references {{{
-		app.quit();
+		if (app) app.quit();
 		win = null; // Remove reference and probably terminate the program
 		// }}}
 
