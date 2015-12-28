@@ -130,8 +130,8 @@ app.controller('conkerController', function($scope) {
 	$scope.charts = {};
 	$scope.charts.template = {
 		size: {
-			width: 120,
-			height: 35,
+			width: 150,
+			height: 33,
 		},
 		options: {
 			chart: {

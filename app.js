@@ -16,7 +16,7 @@ var app;
 var win;
 
 var program = {
-	debug: true,
+	debug: false,
 	theme: __dirname + '/themes/mc-sidebar/index.html',
 };
 
@@ -205,7 +205,7 @@ async()
 					show: false,
 				}
 				: {
-					width: 250,
+					width: 240,
 					height: 1000,
 					frame: false,
 					resizable: false,
@@ -214,8 +214,8 @@ async()
 					type: 'desktop',
 					show: false,
 					transparent: true,
-					x: mainScreen.size.width - 250,
-					y: 50,
+					x: mainScreen.size.width - 243,
+					y: 30,
 					center: false,
 				}
 		);
