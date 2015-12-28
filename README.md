@@ -102,7 +102,19 @@ The system object is made up of several values:
 * `system.hostname` - The hostname of the system e.g. `MyLaptop` / `localhost`
 * `system.load` - A three part array listing the 1, 5 and 15 minute load readings as floats
 * `system.platform` - Node compatible short platform name
-* `system.temperature` - Collection of system temperatures (assumes `sensors` is installed). See below for sub-keys
+* `system.temperature` - Lookup object of system temperatures (assumes `sensors` is installed). See below for sub-keys
 * `system.temperature.main` - Main ambient system temperature
 * `system.temperature.cores` - Array of each CPU core temperature
 * `system.uptime` - The system uptime in seconds
+* `system.processes` - Lookup object for variously ranked system processes. See below for sub-keys
+* `system.processes.topCpu` - The top ranking of processes using the CPU (by default this is the top 5)
+* `system.processes.topRam` - The top ranking of processes using system RAM
+* `system.processes.top*.*.pid` - The PID of the process
+* `system.processes.top*.*.user` - The user owner of the process
+* `system.processes.top*.*.priority` - The scheduling priority of the process
+* `system.processes.top*.*.nice` - The nice value of the process
+* `system.processes.top*.*.mode` - The mode of the process (D = uninteruptable sleep, R = Running, S = Sleeping, T = Traced / Debugging, Z = Zombie)
+* `system.processes.top*.*.cpuPercent` - The currently used CPU percentage of the process
+* `system.processes.top*.*.ramPercent` - The currently used RAM percentage of the process
+* `system.processes.top*.*.cpuTime` - The currently consumed CPU time of the process
+* `system.processes.top*.*.name` - The name of the process

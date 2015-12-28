@@ -12,6 +12,10 @@ var os = require('os');
 var temp = require('temp').track();
 var wirelessTools = require('wireless-tools');
 
+var settings = {
+	topProcessCount: 5,
+};
+
 // Global objects {{{
 var app;
 var win;
@@ -46,6 +50,7 @@ function updateCycle(finish) {
 			platform: os.platform(),
 			uptime: os.uptime(),
 			temperature: {},
+			processes: {},
 		},
 		ram: {
 			free: os.freemem(),
@@ -119,6 +124,69 @@ function updateCycle(finish) {
 					next();
 				});
 			},
+			// }}}
+			// Processes {{{
+			// CPU Usage {{{
+			function(next) {
+				var modes = [
+					{
+						'id': 'topCpu',
+						'exec': [
+							'top',
+							'-Sb',
+							'-n1',
+							'-o%CPU',
+						],
+					},
+					{
+						'id': 'topRam',
+						'exec': [
+							'top',
+							'-Sb',
+							'-n1',
+							'-o%MEM',
+						],
+					},
+				];
+
+				async()
+					.forEach(modes, function(next, mode) {
+
+						async()
+							.use(asyncExec)
+							.exec(mode.id, mode.exec)
+							.then(function(next) {
+								var topSlicer = /^\s*([0-9]+)\s+(.+?)\s+([0-9\-]+)\s+([0-9\-]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+(.)\s+([0-9\.]+)\s+([0-9\.]+)\s+([0-9\.:]+)\s+(.+)\s*$/;
+								data.system.processes[mode.id] = _(this[mode.id])
+									.map(function(line) { return line.split('\n') })
+									.flatten()
+									.slice(7, 7 + settings.topProcessCount)
+									.map(function(line) {
+										var bits = topSlicer.exec(line);
+										if (!bits) return null;
+										return {
+											pid: bits[1],
+											user: bits[2],
+											priority: bits[3],
+											nice: bits[4],
+											// virtual: bits[5],
+											// res: bits[6],
+											// shr: bits[7],
+											mode: bits[8],
+											cpuPercent: bits[9],
+											ramPercent: bits[10],
+											cpuTime: bits[11],
+											name: bits[12],
+										};
+									})
+									.value();
+								next();
+							})
+							.end(next);
+					})
+					.end(next);
+			},
+			// }}}
 			// }}}
 		])
 		.parallel([

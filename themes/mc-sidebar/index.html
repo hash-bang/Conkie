@@ -96,10 +96,10 @@
 				<div class="col-xs-4 text-center text-heading"><h2>CPU%</h2></div>
 				<div class="col-xs-4 text-right text-heading"><h2>RAM%</h2></div>
 			</div>
-			<div class="row">
-				<div class="col-xs-4 text-left">!PROC1</div>
-				<div class="col-xs-4 text-center">!PROC1-CPU</div>
-				<div class="col-xs-4 text-right">!PROC1-RAM</div>
+			<div ng-repeat="proc in system.processes.topCpu track by proc.pid" class="row">
+				<div class="col-xs-4 text-left">{{proc.name}}</div>
+				<div class="col-xs-4 text-center">{{proc.cpuPercent}}%</div>
+				<div class="col-xs-4 text-right">{{proc.ramPercent}}%</div>
 			</div>
 		</div>
 
@@ -117,10 +117,10 @@
 				<div class="col-xs-4 text-center text-heading"><h2>Read</h2></div>
 				<div class="col-xs-4 text-right text-heading"><h2>Write</h2></div>
 			</div>
-			<div class="row">
-				<div class="col-xs-4 text-left">!PROC1</div>
-				<div class="col-xs-4 text-center">!PROC1-READ</div>
-				<div class="col-xs-4 text-right">!PROC1-WRITE</div>
+			<div ng-repeat="proc in system.processes.topDisk track by proc.pid" class="row">
+				<div class="col-xs-4 text-left">{{proc.name}}</div>
+				<div class="col-xs-4 text-center">{{proc.cpuPercent}}%</div>
+				<div class="col-xs-4 text-right">{{proc.ramPercent}}%</div>
 			</div>
 		</div>
 
