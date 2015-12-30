@@ -13,6 +13,7 @@ var temp = require('temp').track();
 var wirelessTools = require('wireless-tools');
 
 var settings = {
+	hasWifi: false,
 	topProcessCount: 5,
 };
 
@@ -66,6 +67,7 @@ function updateCycle(finish) {
 	// }}}
 
 	async()
+		.set('iwconfig', [])
 		.parallel([
 			// .dropbox {{{
 			function(next) {
@@ -90,6 +92,7 @@ function updateCycle(finish) {
 			// }}}
 			// Wlan adapers {{{
 			function(next) {
+				if (!settings.hasWifi) return next();
 				var self = this;
 				wirelessTools.iwconfig.status(function(err, ifaces) {
 					self.iwconfig = ifaces;
