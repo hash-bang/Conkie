@@ -96,6 +96,7 @@ app.controller('conkerController', function($scope) {
 	$scope.system;
 	$scope.ram;
 	$scope.net;
+	$scope.io;
 	$scope.dropbox;
 	$scope.time = {};
 	// }}}
@@ -162,6 +163,10 @@ app.controller('conkerController', function($scope) {
 
 				// MISC {{{
 				$scope.dropbox = data.dropbox;
+				// }}}
+
+				// .io {{{
+				$scope.io = data.io;
 				// }}}
 
 				// .time {{{

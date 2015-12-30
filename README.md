@@ -8,7 +8,7 @@ This project is designed to replace the venerable [Conky project](https://github
 Installing
 ==========
 
-	sudo apt-get install bwm-ng lm-sensors
+	sudo apt-get install bwm-ng lm-sensors iotop
 
 
 Cross platform dev
@@ -17,7 +17,8 @@ Conker relies on a few things to get going:
 
 * `ifconfig` / `iwconfig` - Base network interface libraries
 * `bwm-ng` - Network bandwidth monitoring
-
+* `lm-sensors` - The `sensors` binary provides information about various system temperatures
+* `iotop` - Disk usage statistics
 
 If you know a way to provide cross-platform support for these modules please either get in touch or submit a pull-request.
 
@@ -84,6 +85,13 @@ The result should resemble the following:
 	]
 ```
 
+`io`
+-----
+The IO object is made up of several values:
+
+* `io.totalRead` - The system-wide disk read I/O value
+* `io.totalWrite` - The system-wide disk write I/O value
+
 
 `ram`
 -----
@@ -118,3 +126,8 @@ The system object is made up of several values:
 * `system.processes.top*.*.ramPercent` - The currently used RAM percentage of the process
 * `system.processes.top*.*.cpuTime` - The currently consumed CPU time of the process
 * `system.processes.top*.*.name` - The name of the process
+* `system.processes.topIo` - An array of ranked top Disk I/O processes. See below for each provided object attribute.
+* `system.processes.topIo.*.pid` - The PID of a single process
+* `system.processes.topIo.*.ioRead` - The disk read in killobytes
+* `system.processes.topIo.*.ioRead` - The disk write in killobytes
+* `system.processes.topIo.*.name` - The full name of the process

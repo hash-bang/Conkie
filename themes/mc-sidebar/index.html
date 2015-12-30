@@ -107,20 +107,20 @@
 		<div class="row">
 			<div class="col-xs-9">!DISK-GRAPH</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">!DISK-READ</div>
-				<div class="row">!DISK-WRITE</div>
+				<div class="row">{{io.totalRead}} Kb</div>
+				<div class="row">{{io.totalWrite}} Kb</div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="row">
 				<div class="col-xs-4 text-left text-heading"><h2>IO Usage</h2></div>
-				<div class="col-xs-4 text-center text-heading"><h2>Read</h2></div>
-				<div class="col-xs-4 text-right text-heading"><h2>Write</h2></div>
+				<div class="col-xs-4 text-center text-heading"><h2>Read Kb</h2></div>
+				<div class="col-xs-4 text-right text-heading"><h2>Write Kb</h2></div>
 			</div>
-			<div ng-repeat="proc in system.processes.topDisk track by proc.pid" class="row">
+			<div ng-repeat="proc in system.processes.topIo track by proc.pid" class="row">
 				<div class="col-xs-4 text-left">{{proc.name}}</div>
-				<div class="col-xs-4 text-center">{{proc.cpuPercent}}%</div>
-				<div class="col-xs-4 text-right">{{proc.ramPercent}}%</div>
+				<div class="col-xs-4 text-center">{{proc.ioRead}}%</div>
+				<div class="col-xs-4 text-right">{{proc.ioWrite}}%</div>
 			</div>
 		</div>
 
