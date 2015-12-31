@@ -167,6 +167,11 @@ app.controller('conkieController', function($scope) {
 
 				// .io {{{
 				$scope.io = data.io;
+
+				if (isFinite($scope.io.totalRead)) {
+					$scope.charts.io.series[0].data.push($scope.io.totalRead);
+					if ($scope.charts.io.series[0].data.length > options.chartHistory) $scope.charts.io.series[0].data.shift();
+				}
 				// }}}
 
 				// .time {{{
@@ -281,6 +286,16 @@ app.controller('conkieController', function($scope) {
 		yAxis: {
 			min: 0,
 			max: 100,
+		},
+		series: [{
+			data: [],
+			pointStart: 1,
+		}],
+	}, $scope.charts.template);
+
+	$scope.charts.io = _.defaultsDeep({
+		yAxis: {
+			min: 0,
 		},
 		series: [{
 			data: [],

@@ -21,7 +21,7 @@
 			<span class="picture-slot1">{{system.hostname}}</span>
 			<span class="picture-slot2"><h1>Temp</h1>{{system.temperature.main}}°C</span>
 			<span class="picture-slot3"><h1>CPU</h1>{{system.cpuUsage}}%</span>
-			<span class="picture-slot4"><h1>HDfree</h1>!DISK.USE</span>
+			<span class="picture-slot4"><h1>IOread</h1>{{io.totalRead}} Kb</span>
 			<span class="picture-slot5"><h1>RAM</h1>{{ram.used | byteSize}}</span>
 			<span class="picture-slot6"><h1>Down</h1>{{netTotal.downSpeed | byteSize}}</span>
 		</div>
@@ -34,10 +34,6 @@
 				<div class="row">{{battery.levelPercent}}%</div>
 				<div class="row">{{battery.charging ? battery.chargingTime : battery.dischargingTime | duration}}</div>
 			</div>
-		</div>
-		<div class="row">
-			<div class="col-xs-3 text-left text-heading">Power Profile</div>
-			<div class="col-xs-9 text-right">!BAT-PROFILE</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-3 text-left text-heading">Uptime</div>
@@ -105,7 +101,9 @@
 
 		<h1 class="text-rule">Disk I/O</h1>
 		<div class="row">
-			<div class="col-xs-9">!DISK-GRAPH</div>
+			<div class="col-xs-9">
+				<highchart config="charts.io"></highchart>
+			</div>
 			<div class="col-xs-3 text-right">
 				<div class="row">{{io.totalRead}} Kb</div>
 				<div class="row">{{io.totalWrite}} Kb</div>
