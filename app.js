@@ -31,7 +31,7 @@ program
 	.option('-v, --verbose', 'Be verbose. Specify multiple times for increasing verbosity', function(i, v) { return v + 1 }, 0)
 	.option('-t, --theme [file]', 'Specify main theme HTML file', __dirname + '/themes/mc-sidebar/index.html')
 	.option('--no-color', 'Disable colors')
-	.parse(process.env.CONKER_ARGS ? JSON.parse(process.env.CONKER_ARGS) : '')
+	.parse(process.env.CONKIE_ARGS ? JSON.parse(process.env.CONKIE_ARGS) : '')
 // }}}
 
 // Storage for dynamically updated values {{{
@@ -351,7 +351,7 @@ async()
 					width: 1000,
 					height: 1000,
 					frame: true,
-					title: 'Conker',
+					title: 'Conkie',
 					show: false,
 				}
 				: {
@@ -360,7 +360,7 @@ async()
 					frame: false,
 					resizable: false,
 					skipTaskbar: true,
-					title: 'Conker',
+					title: 'Conkie',
 					type: 'desktop',
 					show: false,
 					transparent: true,
@@ -404,7 +404,7 @@ async()
 				'wmctrl', 
 				'-F',
 				'-r',
-				'Conker',
+				'Conkie',
 				'-b',
 				'add,below',
 				'-vvv',
@@ -413,7 +413,7 @@ async()
 				'wmctrl', 
 				'-F',
 				'-r',
-				'Conker',
+				'Conkie',
 				'-b',
 				'add,sticky',
 				'-vvv',

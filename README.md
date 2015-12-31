@@ -1,4 +1,4 @@
-Conker
+Conkie
 ======
 NodeJS + Electron desktop widgets.
 
@@ -13,7 +13,7 @@ Installing
 
 Cross platform dev
 ==================
-Conker relies on a few things to get going:
+Conkie relies on a few things to gather system statistics:
 
 * `ifconfig` / `iwconfig` - Base network interface libraries
 * `bwm-ng` - Network bandwidth monitoring

@@ -61,7 +61,7 @@ app.filter('byteSize', function() {
 	};
 });
 
-app.controller('conkerController', function($scope) {
+app.controller('conkieController', function($scope) {
 	// .battery {{{
 	$scope.battery = {
 		charging: false,
