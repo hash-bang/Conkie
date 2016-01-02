@@ -65,6 +65,14 @@ app.filter('byteSize', function() {
 	};
 });
 
+app.filter('percent', function() {
+	return function(value) {
+		if (!value || !isFinite(value)) return '';
+
+		return Math.round(value, 2) + '%';
+	};
+});
+
 app.controller('conkieController', function($scope, $timeout) {
 	// .battery {{{
 	$scope.battery = {
@@ -98,7 +106,6 @@ app.controller('conkieController', function($scope, $timeout) {
 	// .stats - backend-IPC provided stats object {{{
 	$scope.stats = {}; // Stats object (gets updated via IPC)
 
-	// Bind to IPC message bus to recieve backend updates {{{
 	electron.ipcRenderer
 		// Event: updateStats {{{
 		.on('updateStats', function(e, data) {
@@ -182,14 +189,15 @@ app.controller('conkieController', function($scope, $timeout) {
 		electron.ipcRenderer.send('statsRegister', [
 			'cpu',
 			'dropbox',
-			'io',
+			'io', // Also provides 'topIO'
 			'memory',
 			'net',
 			'system',
 			'temperature',
+			'topCPU',
+			'topMemory',
 		]);
 	});
-	// }}}
 	// }}}
 	// }}}
 

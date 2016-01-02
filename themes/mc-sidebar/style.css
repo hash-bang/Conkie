@@ -14,6 +14,7 @@ h1, .text-heading {
 
 h1, h2 {
 	font-size: 12px;
+	margin: 10px 0 5px 0;
 }
 
 /* .text-rule - Horizontal line after each element {{{ */
@@ -58,9 +59,9 @@ h1, h2 {
 
 .picture .picture-slot0 {
 	position: absolute;
-	left: 0px;
-	top: 94px;
-	font-size: 28px;
+	left: -5px;
+	top: 90px;
+	font-size: 36px;
 	font-weight: bold;
 }
 
