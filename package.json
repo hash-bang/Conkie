@@ -1,19 +1,33 @@
 {
   "name": "conkie",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "JavaScript desktop widgets",
   "main": "app.js",
-  "scripts": {
-    "start": "electron --enable-transparent-visuals --disable-gpu app.js"
+  "bin": {
+    "conkie": "./start.js"
   },
-  "devDependencies": {
-    "electron-prebuilt": "^0.36.0"
+  "keywords": [
+    "desktop",
+    "widgets",
+    "conky",
+    "stats"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hash-bang/conkie"
+  },
+  "author": "Matt Carter <m@ttcarter.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron --enable-transparent-visuals --disable-gpu app.js",
+    "test": "mocha"
   },
   "dependencies": {
     "async-chainable": "^1.7.15",
     "async-chainable-exec": "^1.3.0",
     "colors": "^1.1.2",
     "conkie-stats": "^1.0.1",
+    "electron-prebuilt": "^0.36.0"
     "ejs": "^2.3.4",
     "highcharts": "^4.2.1",
     "lodash": "^3.10.1",
