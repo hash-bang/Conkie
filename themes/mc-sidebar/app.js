@@ -42,7 +42,7 @@ app.filter('duration', function() {
 
 app.filter('byteSize', function() {
 	return function(value) {
-		if (!value || !isFinite(value)) return '0B';
+		if (!value || !isFinite(value)) return '';
 
 		var exponent;
 		var unit;
@@ -210,6 +210,7 @@ app.controller('conkieController', function($scope, $timeout) {
 		},
 		options: {
 			chart: {
+				animation: false,
 				borderWidth: 0,
 				type: 'area',
 				margin: [2, 0, 2, 0],
@@ -288,6 +289,7 @@ app.controller('conkieController', function($scope, $timeout) {
 		},
 		series: [{
 			data: [],
+			color: '#FFFFFF',
 			pointStart: 1,
 		}],
 	}, $scope.charts.template);
@@ -298,6 +300,7 @@ app.controller('conkieController', function($scope, $timeout) {
 		},
 		series: [{
 			data: [],
+			color: '#FFFFFF',
 			pointStart: 1,
 		}],
 	}, $scope.charts.template);
@@ -309,6 +312,7 @@ app.controller('conkieController', function($scope, $timeout) {
 		},
 		series: [{
 			data: [],
+			color: '#FFFFFF',
 			pointStart: 1,
 		}],
 	}, $scope.charts.template);
@@ -319,6 +323,7 @@ app.controller('conkieController', function($scope, $timeout) {
 		},
 		series: [{
 			data: [],
+			color: '#FFFFFF',
 			pointStart: 1,
 		}],
 	}, $scope.charts.template);

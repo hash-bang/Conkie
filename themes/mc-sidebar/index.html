@@ -31,7 +31,7 @@
 				<highchart config="charts.battery"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{stats.battery.levelPercent}}%</div>
+				<div class="row">{{stats.battery.levelPercent | percent}}</div>
 				<div class="row">{{stats.battery.charging ? stats.battery.chargingTime : stats.battery.dischargingTime | duration}}</div>
 			</div>
 		</div>
@@ -82,7 +82,7 @@
 				<highchart config="charts.cpu"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{stats.cpu.usage}}%</div>
+				<div class="row">{{stats.cpu.usage | percent}}</div>
 				<div class="row">{{stats.cpu.load[0] | number:2}} {{stats.cpu.load[1] | number:2}} {{stats.cpu.load[2] | number:2}}</div>
 			</div>
 		</div>
