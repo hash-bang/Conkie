@@ -40,19 +40,19 @@
 			<div class="col-xs-9 text-right">{{stats.system.uptime | duration}}</div>
 		</div>
 
-		<h1 class="text-rule">Network</h1>
 		<div ng-repeat="adapter in stats.net track by adapter.interface" class="group-spacing">
+			<h1 class="text-rule">Network / {{adapter.interface}}</h1>
 			<div class="row">
-				<div class="col-xs-3 text-left text-heading">{{adapter.interface}}</div>
-				<div class="col-xs-9 text-right">{{adapter.ipv4_address || adapter.ipv6_address}}</div>
+				<div class="col-xs-4 text-left text-heading">Address</div>
+				<div class="col-xs-8 text-right">{{adapter.ipv4_address || adapter.ipv6_address}}</div>
 			</div>
 			<div ng-if="adapter.type == 'wireless'" class="row">
-				<div class="col-xs-3 text-left text-heading">essid</div>
-				<div class="col-xs-9 text-right">{{adapter.ssid}}</div>
+				<div class="col-xs-4 text-left text-heading">SSID</div>
+				<div class="col-xs-8 text-right">{{adapter.ssid}}</div>
 			</div>
 			<div ng-if="adapter.type == 'wireless'" class="row">
-				<div class="col-xs-3 text-left text-heading">conn quality</div>
-				<div class="col-xs-9 text-right">{{adapter.frequency}}Ghz / {{adapter.quality}}</div>
+				<div class="col-xs-4 text-left text-heading">Freq / Quality</div>
+				<div class="col-xs-8 text-right">{{adapter.frequency}}Ghz / {{adapter.quality}}</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-9">
