@@ -1,6 +1,9 @@
 // User configurable options
 var options = {
 	chartHistory: 50, // How many spark line chart positions to retain before removing them
+	conkieStats: { // Options passed to conkie-stats
+		topProcessCount: 5,
+	},
 };
 
 
@@ -8,6 +11,7 @@ var options = {
 // Code only below this line - here be dragons
 
 
+var electron = require('electron');
 var Highcharts = require('highcharts');
 
 var app = angular.module('app', [
@@ -61,7 +65,7 @@ app.filter('byteSize', function() {
 	};
 });
 
-app.controller('conkieController', function($scope) {
+app.controller('conkieController', function($scope, $timeout) {
 	// .battery {{{
 	$scope.battery = {
 		charging: false,
@@ -91,19 +95,21 @@ app.controller('conkieController', function($scope) {
 	});
 	// }}}
 
-	// .system / .ram / .net - backend state objects {{{
+	// .system / .memory / .net - backend state objects {{{
 	// This actually just gets updated by the backend process via IPC
-	$scope.system;
-	$scope.ram;
-	$scope.net;
-	$scope.io;
 	$scope.dropbox;
+	$scope.io;
+	$scope.memory;
+	$scope.net;
+	$scope.system;
+	$scope.temperature;
 	$scope.time = {};
 	// }}}
 
 	// Bind to IPC message bus to recieve backend updates {{{
-	require('electron').ipcRenderer
-		.on('updateState', function(e, data) {
+	electron.ipcRenderer
+		// Event: updateStats {{{
+		.on('updateStats', function(e, data) {
 			$scope.$apply(function() {
 				// .system {{{
 				$scope.system = data.system;
@@ -113,12 +119,12 @@ app.controller('conkieController', function($scope) {
 				}
 				// }}}
 
-				// .ram {{{
-				$scope.ram = data.ram;
-				if (isFinite($scope.ram.used)) {
-					if ($scope.ram.total) $scope.charts.ram.options.yAxis.max = $scope.ram.total;
-					$scope.charts.ram.series[0].data.push($scope.ram.used);
-					if ($scope.charts.ram.series[0].data.length > options.chartHistory) $scope.charts.ram.series[0].data.shift();
+				// .memory {{{
+				$scope.memory = data.memory;
+				if (isFinite($scope.memory.used)) {
+					if ($scope.memory.total) $scope.charts.memory.options.yAxis.max = $scope.memory.total;
+					$scope.charts.memory.series[0].data.push($scope.memory.used);
+					if ($scope.charts.memory.series[0].data.length > options.chartHistory) $scope.charts.memory.series[0].data.shift();
 				}
 				// }}}
 
@@ -174,11 +180,28 @@ app.controller('conkieController', function($scope) {
 				}
 				// }}}
 
+				// .temperature {{{
+				$scope.temperature = data.temperature;
+				// }}}
+
 				// .time {{{
 				$scope.time.t24h = moment().format('HH:mm');
 				// }}}
 			});
-		});
+		})
+		// }}}
+	// }}}
+	// Register required components {{{
+	$timeout(function() {
+		electron.ipcRenderer.send('statsRegister', [
+			'cpu',
+			'dropbox',
+			'io',
+			'memory',
+			'net',
+			'system',
+		]);
+	});
 	// }}}
 
 	// Charts {{{
@@ -272,7 +295,7 @@ app.controller('conkieController', function($scope) {
 		}],
 	}, $scope.charts.template);
 
-	$scope.charts.ram = _.defaultsDeep({
+	$scope.charts.memory = _.defaultsDeep({
 		yAxis: {
 			min: 0,
 		},

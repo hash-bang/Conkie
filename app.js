@@ -1,21 +1,14 @@
 var _ = require('lodash');
 var async = require('async-chainable');
 var asyncExec = require('async-chainable-exec');
-var bwmNg = require('bwm-ng');
-var childProcess = require('child_process');
-var cpuUsage = require('cpu-usage');
+var colors = require('colors');
+var conkieStats = require('conkie-stats');
 var ejs = require('ejs');
 var electron = require('electron');
 var fs = require('fs');
 var fspath = require('path');
 var os = require('os');
 var temp = require('temp').track();
-var wirelessTools = require('wireless-tools');
-
-var settings = {
-	hasWifi: true, // FIXME: This should be auto-detected on each cycle rather than determined at the start
-	topProcessCount: 5,
-};
 
 // Global objects {{{
 var app;
@@ -37,270 +30,6 @@ program
 // Storage for dynamically updated values {{{
 var cpuUsage;
 var ifSpeeds = {};
-// }}}
-
-// Data update cycle {{{
-function updateCycle(finish) {
-	// Base config structure {{{
-	// NOTE: If this gets updated remember to also update the main README.md API reference
-	var data = {
-		system: {
-			cpuUsage, cpuUsage, // Value gets updated via cpuUsage NPM module
-			hostname: os.hostname(),
-			load: os.loadavg(),
-			platform: os.platform(),
-			uptime: os.uptime(),
-			temperature: {},
-			processes: {},
-		},
-		io: {
-			totalWrite: undefined,
-			totalRead: undefined,
-		},
-		ram: {
-			free: os.freemem(),
-			total: os.totalmem(),
-			used: null, // Calculated later
-		},
-		net: [],
-	};
-	// }}}
-
-	// Post setting calculations {{{
-	data.ram.used = data.ram.total - data.ram.free;
-	// }}}
-
-	async()
-		.set('iwconfig', [])
-		.parallel([
-			// .dropbox {{{
-			function(next) {
-				async()
-					.use(asyncExec)
-					.exec('dropbox', ['dropbox', 'status'])
-					.then(function(next) {
-						data.dropbox = this.dropbox;
-						next();
-					})
-					.end(next);
-			},
-			// }}}
-			// .net {{{
-			function(next) {
-				wirelessTools.ifconfig.status(function(err, ifaces) {
-					if (err) return next(err);
-					data.net = ifaces;
-					next();
-				});
-			},
-			// }}}
-			// Wlan adapers {{{
-			function(next) {
-				if (!settings.hasWifi) return next();
-				var self = this;
-				wirelessTools.iwconfig.status(function(err, ifaces) {
-					self.iwconfig = ifaces;
-					next();
-				});
-			},
-			// }}}
-			// Network bandwidth {{{
-			function(next) {
-				bwmNg.check(function(iface, bytesDown, bytesUp) {
-					ifSpeeds[iface] = {
-						downSpeed: bytesDown,
-						upSpeed: bytesUp,
-					};
-				});
-				next();
-			},
-			// }}}
-			// .system.temperature {{{
-			function(next) {
-				var tempRe = /\+([^°]*)/g;
-				childProcess.exec('sensors', function(err, stdout, stderr) {
-					if (err) return next();
-					stdout.toString().split('\n').forEach(function(line) {
-						var temps = line.match(tempRe);
-						if (line.split(':')[0].toUpperCase().indexOf('PHYSICAL') != -1) data.system.temperature.main = parseFloat(temps);
-						if (line.split(':')[0].toUpperCase().indexOf('CORE ') != -1) {
-							if (!data.system.temperature.cores) data.system.temperature.cores = [];
-							data.system.temperature.cores.push(parseFloat(temps));
-						}
-					})
-					next();
-				});
-			},
-			// }}}
-			// .system.processes {{{
-			// Output from `top` {{{
-			function(next) {
-				var modes = [
-					{
-						'id': 'topCpu',
-						'exec': [
-							'top',
-							'-Sb',
-							'-n1',
-							'-o%CPU',
-						],
-					},
-					{
-						'id': 'topRam',
-						'exec': [
-							'top',
-							'-Sb',
-							'-n1',
-							'-o%MEM',
-						],
-					},
-				];
-
-				async()
-					.forEach(modes, function(next, mode) {
-
-						async()
-							.use(asyncExec)
-							.exec(mode.id, mode.exec)
-							.then(function(next) {
-								var topSlicer = /^\s*([0-9]+)\s+(.+?)\s+([0-9\-]+)\s+([0-9\-]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+(.)\s+([0-9\.]+)\s+([0-9\.]+)\s+([0-9\.:]+)\s+(.+)\s*$/;
-								data.system.processes[mode.id] = _(this[mode.id])
-									.map(function(line) { return line.split('\n') })
-									.flatten()
-									.slice(7, 7 + settings.topProcessCount)
-									.map(function(line) {
-										var bits = topSlicer.exec(line);
-										if (!bits) return null;
-										return {
-											pid: bits[1],
-											// user: bits[2],
-											priority: bits[3],
-											nice: bits[4],
-											// virtual: bits[5],
-											// res: bits[6],
-											// shr: bits[7],
-											mode: bits[8],
-											cpuPercent: bits[9],
-											ramPercent: bits[10],
-											cpuTime: bits[11],
-											name: bits[12],
-										};
-									})
-									.value();
-								next();
-							})
-							.end(next);
-					})
-					.end(next);
-			},
-			// }}}
-			// Output from `iotop` {{{
-			function(next) {
-				async()
-					.use(asyncExec)
-					.exec('iotop', [
-						'sudo',
-						'iotop',
-						'-b',
-						'-n1',
-						'-o',
-						'-P',
-						'-k',
-					])
-					.then(function(next) {
-						var iotopSlicer = /^\s*([0-9]+)\s+(.+?)\s+(.+?)\s+([0-9\.]+) K\/s\s+([0-9\.]+) K\/s\s+([0-9\.]+) %\s+([0-9\.]+) %\s+(.*)$/;
-						data.system.processes.topIo = _(this.iotop)
-							.map(function(line) { return line.split('\n') })
-							.tap(function(lines) {
-								// Process first line of output which gives us the total system I/O {{{
-								var bits = /Total DISK READ\s+:\s+([0-9\.]+) K\/s\s+\|\s+Total DISK WRITE\s+:\s+([0-9\.]+) K\/s/.exec(lines[0]);
-								if (bits) {
-									data.io.totalRead = bits[1];
-									data.io.totalWrite = bits[2];
-								}
-								// }}}
-							})
-							.flatten()
-							.slice(3, 3 + settings.topProcessCount)
-							.map(function(line) {
-								var bits = iotopSlicer.exec(line);
-								if (!bits) return null;
-								return {
-									pid: bits[1],
-									// priority: bits[2],
-									// user: bits[3],
-									ioRead: bits[4],
-									ioWrite: bits[5],
-									// swapPercent: bits[6],
-									// ioPercent: bits[7],
-									name: bits[8],
-								};
-							})
-							.value();
-						next();
-					})
-					.end(next);
-			},
-			// }}}
-			// }}}
-		])
-		.parallel([
-			// Post processing of data {{{
-			// Merge .net + Wlan adapter info {{{
-			function(next) {
-				async()
-					.set('iwconfig', this.iwconfig)
-					.forEach(data.net, function(next, adapter) {
-						// Match against known WLAN adapters to merge wireless info {{{
-						var wlan = _.find(this.iwconfig, {interface: adapter.interface });
-						if (wlan) { // Matching wlan adapter
-							adapter.type = 'wireless';
-							_.merge(adapter, wlan);
-						} else { // Boring ethernet
-							adapter.type = 'ethernet';
-						}
-						// }}}
-						// Match against ifSpeeds to provide bandwidth speeds {{{
-						if (ifSpeeds[adapter.interface]) {
-							adapter.downSpeed = ifSpeeds[adapter.interface].downSpeed;
-							adapter.upSpeed = ifSpeeds[adapter.interface].upSpeed;
-						}
-						// }}}
-						next();
-					})
-					.end(next);
-			},
-			// }}}
-			// }}}
-		])
-		.then(function(next) {
-			if (program.verbose > 2) console.log('STATS', JSON.stringify(data, null, '\t'));
-			win.webContents.send('updateState', data);
-			next();
-		})
-		.end(finish);
-}
-
-function updateRepeater() {
-	// Start main cycle update process {{{
-	var updateCycleFunc = function() {
-		updateCycle(function(err) {
-			if (err) {
-				console.log('Update cycle ERROR', err);
-			} else {
-				setTimeout(updateCycleFunc, 1000);
-			}
-		});
-	};
-	setTimeout(updateCycleFunc, 1000); // Initial kickoff
-	// }}}
-
-	// Start supplemental processes {{{
-	cpuUsage(1000, function(load) {
-		cpuUsage = load;
-	});
-	// }}}
-}
 // }}}
 
 async()
@@ -385,42 +114,67 @@ async()
 				win.showInactive();
 			}
 
-			// Kick off repeat cycle
-			updateRepeater();
 			return next();
 		});
 		// }}}
 	})
-	.then(function(next) {
-		// Apply X window styles {{{
-		if (program.debug) return next();
-		async()
-			.use(asyncExec)
-			.execDefaults({
-				log: function(cmd) { console.log('[RUN]', cmd.cmd + ' ' + cmd.params.join(' ')) },
-				out: function(line) { console.log('[GOT]', line) },
-			})
-			.exec([
-				'wmctrl', 
-				'-F',
-				'-r',
-				'Conkie',
-				'-b',
-				'add,below',
-				'-vvv',
-			])
-			.exec([
-				'wmctrl', 
-				'-F',
-				'-r',
-				'Conkie',
-				'-b',
-				'add,sticky',
-				'-vvv',
-			])
-			.end(next);
+	.parallel([
+		// Stats collection {{{
+		function(next) {
+			conkieStats
+				.on('error', function(err) {
+					console.log(colors.blue('[Stats/Error]'), colors.red('ERR', err));
+				})
+				.on('update', function(stats) {
+					if (program.verbose > 2) console.log(colors.blue('[Stats]'), JSON.stringify(stats, null, '\t'));
+					win.webContents.send('updateStats', stats);
+				});
+
+			electron.ipcMain.on('statsRegister', function() {
+				var mods = _.flatten(Array.prototype.slice.call(arguments).slice(1));
+				if (program.debug) console.log(colors.blue('[Stats/Debug]'), 'Register stats modules', mods.map(function(m) { return colors.cyan(m) }).join(', '));
+				conkieStats.register(mods);
+			});
+
+			if (program.debug) {
+				conkieStats.on('debug', function(msg) {
+					console.log(colors.blue('[Stats/Debug]'), msg);
+				})
+			}
+			next();
+		},
 		// }}}
-	})
+		// Apply X window styles {{{
+		function(next) {
+			if (program.debug) return next();
+			async()
+				.use(asyncExec)
+				.execDefaults({
+					log: function(cmd) { console.log(colors.blue('[Conkie/Xsetup]'), cmd.cmd + ' ' + cmd.params.join(' ')) },
+					out: function(line) { console.log(colors.blue('[Conkie/Xsetup]'), colors.grey('>'), line) },
+				})
+				.exec([
+					'wmctrl', 
+					'-F',
+					'-r',
+					'Conkie',
+					'-b',
+					'add,below',
+					'-vvv',
+				])
+				.exec([
+					'wmctrl', 
+					'-F',
+					'-r',
+					'Conkie',
+					'-b',
+					'add,sticky',
+					'-vvv',
+				])
+				.end(next);
+		},
+		// }}}
+	])
 	.then(function(next) {
 		// Everything done - wait for window to terminate {{{
 		win.on('closed', function() {
@@ -436,10 +190,10 @@ async()
 
 		// Handle exit state {{{
 		if (err) {
-			console.log('ERROR', err.toString());
+			console.log(colors.blue('[Conkie]'), colors.red('ERR', err.toString()));
 			process.exit(1);
 		} else {
-			console.log('Normal exit');
+			console.log(colors.blue('[Conkie]'), 'Exit');
 			process.exit(0);
 		}
 		// }}}

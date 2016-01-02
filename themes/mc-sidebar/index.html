@@ -19,10 +19,10 @@
 		<div class="picture">
 			<span class="picture-slot0">{{time.t24h}}</span>
 			<span class="picture-slot1">{{system.hostname}}</span>
-			<span class="picture-slot2"><h1>Temp</h1>{{system.temperature.main}}°C</span>
-			<span class="picture-slot3"><h1>CPU</h1>{{system.cpuUsage}}%</span>
+			<span class="picture-slot2"><h1>Temp</h1>{{temperature.main}}°C</span>
+			<span class="picture-slot3"><h1>CPU</h1>{{cpu.usage}}%</span>
 			<span class="picture-slot4"><h1>IOread</h1>{{io.totalRead}} Kb</span>
-			<span class="picture-slot5"><h1>RAM</h1>{{ram.used | byteSize}}</span>
+			<span class="picture-slot5"><h1>Mem</h1>{{memory.used | byteSize}}</span>
 			<span class="picture-slot6"><h1>Down</h1>{{netTotal.downSpeed | byteSize}}</span>
 		</div>
 		<h1 class="text-rule">Power</h1>
@@ -65,14 +65,14 @@
 			</div>
 		</div>
 
-		<h1 class="text-rule">RAM</h1>
+		<h1 class="text-rule">Memory</h1>
 		<div class="row">
 			<div class="col-xs-9">
-				<highchart config="charts.ram"></highchart>
+				<highchart config="charts.memory"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{ram.free | byteSize}} Free</div>
-				<div class="row">{{ram.used | byteSize}} Used</div>
+				<div class="row">{{memory.free | byteSize}} Free</div>
+				<div class="row">{{memory.used | byteSize}} Used</div>
 			</div>
 		</div>
 
@@ -82,20 +82,20 @@
 				<highchart config="charts.cpu"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{system.cpuUsage}}%</div>
-				<div class="row">{{system.load[0] | number:2}} {{system.load[1] | number:2}} {{system.load[2] | number:2}}</div>
+				<div class="row">{{cpu.usage}}%</div>
+				<div class="row">{{cpu.load[0] | number:2}} {{cpu.load[1] | number:2}} {{cpu.load[2] | number:2}}</div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="row">
 				<div class="col-xs-4 text-left text-heading"><h2>CPU Usage</h2></div>
 				<div class="col-xs-4 text-center text-heading"><h2>CPU%</h2></div>
-				<div class="col-xs-4 text-right text-heading"><h2>RAM%</h2></div>
+				<div class="col-xs-4 text-right text-heading"><h2>Mem%</h2></div>
 			</div>
-			<div ng-repeat="proc in system.processes.topCpu track by proc.pid" class="row">
+			<div ng-repeat="proc in topCpu track by proc.pid" class="row">
 				<div class="col-xs-4 text-left">{{proc.name}}</div>
 				<div class="col-xs-4 text-center">{{proc.cpuPercent}}%</div>
-				<div class="col-xs-4 text-right">{{proc.ramPercent}}%</div>
+				<div class="col-xs-4 text-right">{{proc.memPercent}}%</div>
 			</div>
 		</div>
 
@@ -115,7 +115,7 @@
 				<div class="col-xs-4 text-center text-heading"><h2>Read Kb</h2></div>
 				<div class="col-xs-4 text-right text-heading"><h2>Write Kb</h2></div>
 			</div>
-			<div ng-repeat="proc in system.processes.topIo track by proc.pid" class="row">
+			<div ng-repeat="proc in topIo track by proc.pid" class="row">
 				<div class="col-xs-4 text-left">{{proc.name}}</div>
 				<div class="col-xs-4 text-center">{{proc.ioRead}}%</div>
 				<div class="col-xs-4 text-right">{{proc.ioWrite}}%</div>
