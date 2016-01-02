@@ -9,14 +9,27 @@ var options = {
 
 
 // Code only below this line - here be dragons
+// -------------------------------------------
 
 
+// Imports {{{
+var _ = require('lodash');
+var $ = require('jQuery');
+var angular = require('angular');
 var electron = require('electron');
 var Highcharts = require('highcharts');
+var moment = require('moment');
+// }}}
 
 var app = angular.module('app', [
 	'highcharts-ng',
 ]);
+
+/*
+app.config(['highchartsNGProvider', function (highchartsNGProvider) {
+	highchartsNGProvider.lazyLoad();// will load hightcharts (and standalone framework if jquery is not present) from code.hightcharts.com
+}]);
+*/
 
 app.filter('duration', function() {
 	return function(value) {

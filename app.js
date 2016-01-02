@@ -50,8 +50,11 @@ async()
 		var tempFile = temp.path({suffix: '.html'}, next);
 		fs.writeFile(tempFile, ejs.render(this.theme, {
 			debugMode: true,
-			root: 'file://' + __dirname,
-			themeRoot: 'file://' + fspath.dirname(program.theme),
+			paths: {
+				root: 'file://' + __dirname,
+				theme: 'file://' + fspath.dirname(program.theme),
+				modules: 'file://' + __dirname + '/node_modules',
+			},
 		}), function(err) {
 			if (err) return next(err);
 			next(null, tempFile);

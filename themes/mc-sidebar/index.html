@@ -4,16 +4,11 @@
 		<meta charset="UTF-8">
 		<title>Hello World!</title>
 
-		<script src="<%=root%>/bower_components/jquery/dist/jquery.min.js"></script>
-		<script src="<%=root%>/bower_components/lodash/lodash.min.js"></script>
-		<link rel="stylesheet" href="<%=root%>/bower_components/font-awesome/css/font-awesome.min.css">
-		<link href="<%=root%>/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
-		<script src="<%=root%>/bower_components/moment/min/moment.min.js"></script>
-		<script src="<%=root%>/bower_components/angular/angular<%=!debugMode ? '.min' : ''%>.js"></script>
-		<script src="<%=root%>/bower_components/highcharts/lib/highcharts.js"></script>
-		<script src="<%=root%>/bower_components/highcharts-ng/dist/highcharts-ng.js"></script>
-		<link href="<%=themeRoot%>/style.css" rel="stylesheet" type="text/css"/>
-		<script src="<%=themeRoot%>/app.js"></script>
+		<link rel="stylesheet" href="<%=paths.modules%>/font-awesome/css/font-awesome.min.css">
+		<link href="<%=paths.modules%>/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+		<link href="<%=paths.theme%>/style.css" rel="stylesheet" type="text/css"/>
+		<script src="<%=paths.theme%>/app.js"></script>
+		<script src="<%=paths.modules%>/highcharts-ng/dist/highcharts-ng.min.js"></script>
 	</head>
 	<body ng-app="app" ng-controller="conkieController">
 		<div class="picture">
