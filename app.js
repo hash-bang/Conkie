@@ -23,6 +23,8 @@ program
 	.option('-d, --debug', 'Enter debug mode. Show as window and enable dev-tools')
 	.option('-v, --verbose', 'Be verbose. Specify multiple times for increasing verbosity', function(i, v) { return v + 1 }, 0)
 	.option('-t, --theme [file]', 'Specify main theme HTML file', __dirname + '/themes/mc-sidebar/index.html')
+	.option('--debug-stats', 'Show stats object being transmitted to front-end')
+	.option('--watch', 'Watch the theme directory and reload on any changes')
 	.option('--no-color', 'Disable colors')
 	.parse(process.env.CONKIE_ARGS ? JSON.parse(process.env.CONKIE_ARGS) : '')
 // }}}
@@ -59,13 +61,13 @@ async()
 	.then(function(next) {
 		// Setup browser app {{{
 		app = electron.app
-			.on('window-all-closed', function() {
+			.once('window-all-closed', function() {
 				if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
 			})
-			.on('ready', function() {
+			.once('ready', function() {
 				console.log('READY!');
 			})
-			.on('error', next);
+			.once('error', next);
 		next();
 		// }}}
 	})
@@ -106,7 +108,7 @@ async()
 
 		win.loadURL('file://' + this.tempFile);
 
-		win.webContents.on('dom-ready', function() {
+		win.webContents.once('dom-ready', function() {
 			if (program.debug) {
 				win.show();
 				win.webContents.openDevTools();
@@ -126,7 +128,7 @@ async()
 					console.log(colors.blue('[Stats/Error]'), colors.red('ERR', err));
 				})
 				.on('update', function(stats) {
-					if (program.verbose > 2) console.log(colors.blue('[Stats]'), JSON.stringify(stats, null, '\t'));
+					if (program.debugStats) console.log(colors.blue('[Stats]'), JSON.stringify(stats, null, '\t'));
 					win.webContents.send('updateStats', stats);
 				});
 
@@ -172,6 +174,22 @@ async()
 					'-vvv',
 				])
 				.end(next);
+		},
+		// }}}
+		// (Optional) Watch theme directory if `--watch` is specified {{{
+		function(next) {
+			if (!program.watch) return next();
+
+			var dir = fspath.dirname(program.theme);
+			if (program.verbose > 1) console.log(colors.blue('[Conkie/Theme/Watcher]'), 'Watching', colors.cyan(dir));
+			fs.watch(dir, {
+				persistant: true,
+				recursive: true,
+			}, function(e, path) {
+				if (program.verbose) console.log(colors.blue('[Conkie/Theme/Watcher]'), 'Detected', colors.cyan(e), 'on', colors.cyan(path));
+				win.webContents.reload();
+			});
+			next();
 		},
 		// }}}
 	])
