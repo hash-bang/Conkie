@@ -95,45 +95,46 @@ app.controller('conkieController', function($scope, $timeout) {
 	});
 	// }}}
 
-	// .system / .memory / .net - backend state objects {{{
-	// This actually just gets updated by the backend process via IPC
-	$scope.dropbox;
-	$scope.io;
-	$scope.memory;
-	$scope.net;
-	$scope.system;
-	$scope.temperature;
-	$scope.time = {};
-	// }}}
+	// .stats - backend-IPC provided stats object {{{
+	$scope.stats = {}; // Stats object (gets updated via IPC)
 
 	// Bind to IPC message bus to recieve backend updates {{{
 	electron.ipcRenderer
 		// Event: updateStats {{{
 		.on('updateStats', function(e, data) {
 			$scope.$apply(function() {
-				// .system {{{
-				$scope.system = data.system;
-				if (isFinite($scope.system.cpuUsage)) {
-					$scope.charts.cpu.series[0].data.push($scope.system.cpuUsage);
-					if ($scope.charts.cpu.series[0].data.length > options.chartHistory) $scope.charts.cpu.series[0].data.shift();
+				$scope.stats = data;
+
+				// Chart data updates {{{
+
+				// .stats.battery {{{
+				$scope.stats.battery = $scope.battery; // Glue main $scope.battery object here so we have a consistant method of accessing stats info
+				if ($scope.stats.battery && isFinite($scope.stats.battery.levelPercent)) {
+					$scope.charts.battery.series[0].data.push($scope.stats.battery.levelPercent);
+					if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
 				}
 				// }}}
 
-				// .memory {{{
-				$scope.memory = data.memory;
-				if (isFinite($scope.memory.used)) {
-					if ($scope.memory.total) $scope.charts.memory.options.yAxis.max = $scope.memory.total;
-					$scope.charts.memory.series[0].data.push($scope.memory.used);
+				// .stats.io {{{
+				if (isFinite($scope.stats.io.totalRead)) {
+					$scope.charts.io.series[0].data.push($scope.stats.io.totalRead);
+					if ($scope.charts.io.series[0].data.length > options.chartHistory) $scope.charts.io.series[0].data.shift();
+				}
+				// }}}
+
+				// .stats.memory {{{
+				if (isFinite($scope.stats.memory.used)) {
+					if ($scope.stats.memory.total) $scope.charts.memory.options.yAxis.max = $scope.stats.memory.total;
+					$scope.charts.memory.series[0].data.push($scope.stats.memory.used);
 					if ($scope.charts.memory.series[0].data.length > options.chartHistory) $scope.charts.memory.series[0].data.shift();
 				}
 				// }}}
 
 				// .net {{{
-				$scope.net = data.net;
-
-				data.net.forEach(function(adapter) {
+				$scope.stats.net.forEach(function(adapter) {
+					var id = adapter.interface; // Use the adapter interface name as the chart name
 					// Not seen this adapter before - create a chart object {{{
-					if (!$scope.charts[adapter.interface]) $scope.charts[adapter.interface] = _.defaultsDeep({
+					if (!$scope.charts[id]) $scope.charts[id] = _.defaultsDeep({
 						series: [{
 							data: [],
 							pointStart: 1,
@@ -142,15 +143,28 @@ app.controller('conkieController', function($scope, $timeout) {
 					// }}}
 					// Append bandwidth data to the chart {{{
 					if (isFinite(adapter.downSpeed)) {
-						$scope.charts[adapter.interface].series[0].data.push(adapter.downSpeed);
-						if ($scope.charts[adapter.interface].series[0].data.length > options.chartHistory) $scope.charts[adapter.interface].series[0].data.shift();
+						$scope.charts[id].series[0].data.push(adapter.downSpeed);
+						if ($scope.charts[id].series[0].data.length > options.chartHistory) $scope.charts[id].series[0].data.shift();
 					}
 					// }}}
 				});
 				// }}}
 
-				// .netTotal {{{
-				$scope.netTotal = data.net.reduce(function(total, adapter) {
+				// .stats.system {{{
+				if (isFinite($scope.stats.system.cpuUsage)) {
+					$scope.charts.cpu.series[0].data.push($scope.stats.system.cpuUsage);
+					if ($scope.charts.cpu.series[0].data.length > options.chartHistory) $scope.charts.cpu.series[0].data.shift();
+				}
+				// }}}
+
+				// META: .stats.time {{{
+				$scope.stats.time = {
+					t24h: moment().format('HH:mm'),
+				};
+				// }}}
+
+				// META: .stats.netTotal {{{
+				$scope.stats.netTotal = $scope.stats.net.reduce(function(total, adapter) {
 					if (adapter.downSpeed) total.downSpeed += adapter.downSpeed;
 					if (adapter.upSpeed) total.upSpeed += adapter.upSpeed;
 					return total;
@@ -159,37 +173,9 @@ app.controller('conkieController', function($scope, $timeout) {
 					upSpeed: 0,
 				});
 				// }}}
-
-				// .battery {{{
-				if ($scope.battery && isFinite($scope.battery.levelPercent)) {
-					$scope.charts.battery.series[0].data.push($scope.battery.levelPercent);
-					if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
-				}
-				// }}}
-
-				// MISC {{{
-				$scope.dropbox = data.dropbox;
-				// }}}
-
-				// .io {{{
-				$scope.io = data.io;
-
-				if (isFinite($scope.io.totalRead)) {
-					$scope.charts.io.series[0].data.push($scope.io.totalRead);
-					if ($scope.charts.io.series[0].data.length > options.chartHistory) $scope.charts.io.series[0].data.shift();
-				}
-				// }}}
-
-				// .temperature {{{
-				$scope.temperature = data.temperature;
-				// }}}
-
-				// .time {{{
-				$scope.time.t24h = moment().format('HH:mm');
 				// }}}
 			});
 		})
-		// }}}
 	// }}}
 	// Register required components {{{
 	$timeout(function() {
@@ -200,8 +186,11 @@ app.controller('conkieController', function($scope, $timeout) {
 			'memory',
 			'net',
 			'system',
+			'temperature',
 		]);
 	});
+	// }}}
+	// }}}
 	// }}}
 
 	// Charts {{{

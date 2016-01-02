@@ -17,13 +17,13 @@
 	</head>
 	<body ng-app="app" ng-controller="conkieController">
 		<div class="picture">
-			<span class="picture-slot0">{{time.t24h}}</span>
-			<span class="picture-slot1">{{system.hostname}}</span>
-			<span class="picture-slot2"><h1>Temp</h1>{{temperature.main}}°C</span>
-			<span class="picture-slot3"><h1>CPU</h1>{{cpu.usage}}%</span>
-			<span class="picture-slot4"><h1>IOread</h1>{{io.totalRead}} Kb</span>
-			<span class="picture-slot5"><h1>Mem</h1>{{memory.used | byteSize}}</span>
-			<span class="picture-slot6"><h1>Down</h1>{{netTotal.downSpeed | byteSize}}</span>
+			<span class="picture-slot0">{{stats.time.t24h}}</span>
+			<span class="picture-slot1">{{stats.system.hostname}}</span>
+			<span class="picture-slot2"><h1>Temp</h1>{{stats.temperature.main}}°C</span>
+			<span class="picture-slot3"><h1>CPU</h1>{{stats.cpu.usage}}%</span>
+			<span class="picture-slot4"><h1>IOread</h1>{{stats.io.totalRead}} Kb</span>
+			<span class="picture-slot5"><h1>Mem</h1>{{stats.memory.used | byteSize}}</span>
+			<span class="picture-slot6"><h1>Down</h1>{{stats.netTotal.downSpeed | byteSize}}</span>
 		</div>
 		<h1 class="text-rule">Power</h1>
 		<div class="row">
@@ -31,17 +31,17 @@
 				<highchart config="charts.battery"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{battery.levelPercent}}%</div>
-				<div class="row">{{battery.charging ? battery.chargingTime : battery.dischargingTime | duration}}</div>
+				<div class="row">{{stats.battery.levelPercent}}%</div>
+				<div class="row">{{stats.battery.charging ? stats.battery.chargingTime : stats.battery.dischargingTime | duration}}</div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-3 text-left text-heading">Uptime</div>
-			<div class="col-xs-9 text-right">{{system.uptime | duration}}</div>
+			<div class="col-xs-9 text-right">{{stats.system.uptime | duration}}</div>
 		</div>
 
 		<h1 class="text-rule">Network</h1>
-		<div ng-repeat="adapter in net track by adapter.interface" class="group-spacing">
+		<div ng-repeat="adapter in stats.net track by adapter.interface" class="group-spacing">
 			<div class="row">
 				<div class="col-xs-3 text-left text-heading">{{adapter.interface}}</div>
 				<div class="col-xs-9 text-right">{{adapter.ipv4_address || adapter.ipv6_address}}</div>
@@ -71,8 +71,8 @@
 				<highchart config="charts.memory"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{memory.free | byteSize}} Free</div>
-				<div class="row">{{memory.used | byteSize}} Used</div>
+				<div class="row">{{stats.memory.free | byteSize}} Free</div>
+				<div class="row">{{stats.memory.used | byteSize}} Used</div>
 			</div>
 		</div>
 
@@ -82,8 +82,8 @@
 				<highchart config="charts.cpu"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{cpu.usage}}%</div>
-				<div class="row">{{cpu.load[0] | number:2}} {{cpu.load[1] | number:2}} {{cpu.load[2] | number:2}}</div>
+				<div class="row">{{stats.cpu.usage}}%</div>
+				<div class="row">{{stats.cpu.load[0] | number:2}} {{stats.cpu.load[1] | number:2}} {{stats.cpu.load[2] | number:2}}</div>
 			</div>
 		</div>
 		<div class="row">
@@ -92,7 +92,7 @@
 				<div class="col-xs-4 text-center text-heading"><h2>CPU%</h2></div>
 				<div class="col-xs-4 text-right text-heading"><h2>Mem%</h2></div>
 			</div>
-			<div ng-repeat="proc in topCpu track by proc.pid" class="row">
+			<div ng-repeat="proc in stats.topCpu track by proc.pid" class="row">
 				<div class="col-xs-4 text-left">{{proc.name}}</div>
 				<div class="col-xs-4 text-center">{{proc.cpuPercent}}%</div>
 				<div class="col-xs-4 text-right">{{proc.memPercent}}%</div>
@@ -105,8 +105,8 @@
 				<highchart config="charts.io"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{io.totalRead}} Kb</div>
-				<div class="row">{{io.totalWrite}} Kb</div>
+				<div class="row">{{stats.io.totalRead}} Kb</div>
+				<div class="row">{{stats.io.totalWrite}} Kb</div>
 			</div>
 		</div>
 		<div class="row">
@@ -115,7 +115,7 @@
 				<div class="col-xs-4 text-center text-heading"><h2>Read Kb</h2></div>
 				<div class="col-xs-4 text-right text-heading"><h2>Write Kb</h2></div>
 			</div>
-			<div ng-repeat="proc in topIo track by proc.pid" class="row">
+			<div ng-repeat="proc in stats.topIO track by proc.pid" class="row">
 				<div class="col-xs-4 text-left">{{proc.name}}</div>
 				<div class="col-xs-4 text-center">{{proc.ioRead}}%</div>
 				<div class="col-xs-4 text-right">{{proc.ioWrite}}%</div>
@@ -125,7 +125,7 @@
 		<h1 class="text-rule">Sync</h1>
 		<div class="row">
 			<div class="col-xs-12">
-				<div ng-repeat="line in dropbox" ng-bind="line"></div>
+				<div ng-repeat="line in stats.dropbox" ng-bind="line"></div>
 			</div>
 		</div>
 	</body>
