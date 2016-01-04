@@ -57,11 +57,12 @@ function loadTheme(finish) {
 			// }}}
 
 			// Precompile various RegExps {{{
-			var linkExtract = /<link.*?href="<%=paths.modules%>\/(.+?)\/(.+?)"/;
+			var linkExtract = /<link.+?href="<%=paths.modules%>\/(.+?)\/(.+?)"/;
+			var scriptExtract = /<script.+?src="<%=paths.modules%>\/(.+?)\/(.+?)"/;
 			// }}}
 			baseContent = baseContent
-				// Scoop and replace all CSS links {{{
-				.replace(/<link href="<%=paths.modules%>\/.+?".*?>/g, function(block) {
+				// Inline re-write all CSS assets {{{
+				.replace(/<link.+?href="<%=paths.modules%>\/.+?".*?>/g, function(block) {
 					var bits = linkExtract.exec(block);
 					var module = bits[1];
 					var cssFile = bits[2];
@@ -74,7 +75,7 @@ function loadTheme(finish) {
 
 						var cssPath = fspath.join(fspath.dirname(mod.path), cssFile);
 
-						if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS', colors.cyan(cssPath));
+						if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS asset', colors.cyan(cssPath));
 						fs.readFile(cssPath, 'utf8', function(err, content) {
 							if (err) return finish(err);
 							baseContent = baseContent.replace(marker, marker + '\n' + '<style>' + content + '</style>');
@@ -82,7 +83,31 @@ function loadTheme(finish) {
 						});
 					});
 					return marker;
-				});
+				})
+				// }}}
+				// Inline re-write all JS assets {{{
+				.replace(/<script.+src="<%=paths.modules%>\/.+?".*?>/g, function(block) {
+					var bits = scriptExtract.exec(block);
+					var module = bits[1];
+					var jsFile = bits[2];
+					var marker = '<!-- JS FOR [' + module + '/' + jsFile + '] -->';
+
+					findModules.push(module);
+					scooper.defer('js-' + jsFile, function(next) {
+						var mod = modules.find(function(m) { return m.pkg.name == module });
+						if (!mod) return next('Cannot find module "' + module + '" required by JS pre-load of "' + jsFile + '"');
+
+						var jsPath = fspath.join(fspath.dirname(mod.path), jsFile);
+
+						if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read JS asset', colors.cyan(jsPath));
+						fs.readFile(jsPath, 'utf8', function(err, content) {
+							if (err) return finish(err);
+							baseContent = baseContent.replace(marker, marker + '\n' + '<script>' + content + '</script>');
+							next();
+						});
+					});
+					return marker;
+				})
 				// }}}
 
 			// Kick all the defered processes off {{{
