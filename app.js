@@ -7,12 +7,113 @@ var ejs = require('ejs');
 var electron = require('electron');
 var fs = require('fs');
 var fspath = require('path');
+var moduleFinder = require('module-finder');
 var os = require('os');
 var temp = require('temp').track();
 
 // Global objects {{{
 var app;
 var win;
+var tempFile; // File compiled at boot containing main HTML body
+// }}}
+
+// Global processes {{{
+// Exposed functions designed to work as async callbacks
+
+/**
+* Load the theme
+* @param function finish The callback to invoke when done
+* This process breaks down as follows:
+* 1. Read in the main HTML file for the theme
+* 2. Figure out all the linked JS / CSS assets
+* 3. Read the contents of all assets discovered
+* 4. Insert contents inline into HTML stream
+* 5. Write a file with all the above
+*/
+function loadTheme(finish) {
+	async()
+		.then('content', function(next) {
+			// Read in theme file {{{
+			fs.readFile(program.theme, 'utf8', next);
+			// }}}
+		})
+		.then('content', function(next) {
+			// Scoop all CSS / JS asset links {{{
+			// Prepare Async process loader {{{
+			var baseContent = this.content;
+			var findModules = []; // List of modules we will be needing (fed into module-finder query)
+			var modules; // Result of module search
+			var scooper = async()
+				.then(function(next) {
+					if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Find modules', colors.cyan(findModules.map(function(m) { return colors.cyan(m) }).join(', ')));
+					moduleFinder({
+						local: true,
+						global: true,
+						filter: {
+							name: {'$in': findModules}
+						},
+					}).then(function(res) { modules = res; return next() }, next);
+				});
+			// }}}
+
+			// Precompile various RegExps {{{
+			var linkExtract = /<link.*?href="<%=paths.modules%>\/(.+?)\/(.+?)"/;
+			// }}}
+			baseContent = baseContent
+				// Scoop and replace all CSS links {{{
+				.replace(/<link href="<%=paths.modules%>\/.+?".*?>/g, function(block) {
+					var bits = linkExtract.exec(block);
+					var module = bits[1];
+					var cssFile = bits[2];
+					var marker = '<!-- CSS FOR [' + module + '/' + cssFile + '] -->';
+
+					findModules.push(module);
+					scooper.defer('css-' + cssFile, function(next) {
+						var mod = modules.find(function(m) { return m.pkg.name == module });
+						if (!mod) return next('Cannot find module "' + module + '" required by CSS pre-load of "' + cssFile + '"');
+
+						var cssPath = fspath.join(fspath.dirname(mod.path), cssFile);
+
+						if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS', colors.cyan(cssPath));
+						fs.readFile(cssPath, 'utf8', function(err, content) {
+							if (err) return finish(err);
+							baseContent = baseContent.replace(marker, marker + '\n' + '<style>' + content + '</style>');
+							next();
+						});
+					});
+					return marker;
+				});
+				// }}}
+
+			// Kick all the defered processes off {{{
+			scooper
+				.await()
+				.end(function(err) {
+					next(err, baseContent);
+				});
+			// }}}
+			// }}}
+		})
+		.then(function(next) {
+			// Create temp file (which is the EJS compiled template) {{{
+			if (tempFile) return next(); // tempFile already setup
+			tempFile = temp.path({suffix: '.html'});
+			if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Setup temp file', colors.cyan(tempFile));
+			fs.writeFile(tempFile, ejs.render(this.content, {
+				debugMode: program.debug,
+				paths: {
+					root: 'file://' + __dirname,
+					theme: 'file://' + fspath.dirname(program.theme),
+					modules: 'file://' + __dirname + '/node_modules',
+				},
+			}), function(err) {
+				if (err) return next(err);
+				next(null, tempFile);
+			});
+			// }}}
+		})
+		.end(finish);
+}
 // }}}
 
 // Process command line args {{{
@@ -40,27 +141,7 @@ async()
 		next();
 		// }}}
 	})
-	.then('theme', function(next) {
-		// Read in theme file {{{
-		fs.readFile(program.theme, 'utf8', next);
-		// }}}
-	})
-	.then('tempFile', function(next) {
-		// Crate temp file (which is the EJS compiled template) {{{
-		var tempFile = temp.path({suffix: '.html'}, next);
-		fs.writeFile(tempFile, ejs.render(this.theme, {
-			debugMode: true,
-			paths: {
-				root: 'file://' + __dirname,
-				theme: 'file://' + fspath.dirname(program.theme),
-				modules: 'file://' + __dirname + '/node_modules',
-			},
-		}), function(err) {
-			if (err) return next(err);
-			next(null, tempFile);
-		});
-		// }}}
-	})
+	.then(loadTheme)
 	.then(function(next) {
 		// Setup browser app {{{
 		app = electron.app
@@ -109,7 +190,7 @@ async()
 			e.preventDefault();
 		})
 
-		win.loadURL('file://' + this.tempFile);
+		win.loadURL('file://' + tempFile);
 
 		win.webContents.once('dom-ready', function() {
 			if (program.debug) {
