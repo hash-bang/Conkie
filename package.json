@@ -36,6 +36,7 @@
     "highcharts-ng": "0.0.11",
     "jQuery": "^1.7.4",
     "lodash": "^3.10.1",
+    "module-finder": "^4.0.1",
     "moment": "^2.10.6",
     "temp": "^0.8.3"
   }
