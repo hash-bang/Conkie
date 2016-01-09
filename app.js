@@ -162,24 +162,25 @@ var ifSpeeds = {};
 
 async()
 	.then(function(next) {
-		// Sanity checks {{{
+		//  checks {{{
 		next();
 		// }}}
 	})
-	.then(loadTheme)
 	.then(function(next) {
 		// Setup browser app {{{
 		app = electron.app
 			.once('window-all-closed', function() {
+				if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'All windows closed');
 				if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
 			})
 			.once('ready', function() {
-				console.log('READY!');
+				if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Electron app ready');
+				next();
 			})
 			.once('error', next);
-		next();
 		// }}}
 	})
+	.then(loadTheme)
 	.then(function(next) {
 		// Setup page {{{
 		var mainScreen = electron.screen.getPrimaryDisplay();
@@ -296,7 +297,14 @@ async()
 				recursive: true,
 			}, function(e, path) {
 				if (program.verbose) console.log(colors.blue('[Conkie/Theme/Watcher]'), 'Detected', colors.cyan(e), 'on', colors.cyan(path));
-				win.webContents.reload();
+				loadTheme(function(err) {
+					if (err) {
+						console.log(colors.blue('[Conkie/Theme/Watcher]'), colors.red('ERR'), 'Error while re-loading theme - ' + err.toString());
+					} else {
+						if (program.verbose) console.log(colors.blue('[Conkie/Theme/Watcher]'), 'Theme reloaded');
+						win.webContents.reload();
+					}
+				});
 			});
 			next();
 		},
