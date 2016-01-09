@@ -243,11 +243,18 @@ async()
 					win.webContents.send('updateStats', stats);
 				});
 
-			electron.ipcMain.on('statsRegister', function() {
-				var mods = _.flatten(Array.prototype.slice.call(arguments).slice(1));
-				if (program.debug) console.log(colors.blue('[Stats/Debug]'), 'Register stats modules', mods.map(function(m) { return colors.cyan(m) }).join(', '));
-				conkieStats.register(mods);
-			});
+			electron.ipcMain
+				.on('statsRegister', function() {
+					var mods = _.flatten(Array.prototype.slice.call(arguments).slice(1));
+					if (program.debug) console.log(colors.blue('[Stats/Debug]'), 'Register stats modules', mods.map(function(m) { return colors.cyan(m) }).join(', '));
+					conkieStats.register(mods);
+				});
+
+			electron.ipcMain
+				.on('statsSettings', function(e, options) {
+					if (program.verbose > 2) console.log(colors.blue('[Stats]'), 'Register stats settings', options);
+					conkieStats.settings(options);
+				});
 
 			if (program.debug) {
 				conkieStats.on('debug', function(msg) {

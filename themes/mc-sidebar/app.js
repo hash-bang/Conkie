@@ -3,6 +3,10 @@ var options = {
 	chartHistory: 50, // How many spark line chart positions to retain before removing them
 	conkieStats: { // Options passed to conkie-stats
 		topProcessCount: 5,
+		net: {
+			ignoreNoIP: true,
+			ignoreDevice: ['lo'],
+		},
 	},
 };
 
@@ -217,19 +221,24 @@ app.controller('conkieController', function($scope, $timeout) {
 			});
 		})
 	// }}}
-	// Register required components {{{
+	// Configure conkie-stats to provide us with information {{{
 	$timeout(function() {
-		electron.ipcRenderer.send('statsRegister', [
-			'cpu',
-			'dropbox',
-			'io', // Also provides 'topIO'
-			'memory',
-			'net',
-			'system',
-			'temperature',
-			'topCPU',
-			'topMemory',
-		]);
+		electron.ipcRenderer
+			.send('statsRegister', [
+				'cpu',
+				'dropbox',
+				'io', // Also provides 'topIO'
+				'memory',
+				'net',
+				'system',
+				'temperature',
+				'topCPU',
+				'topMemory',
+			]);
+	});
+	$timeout(function() {
+		electron.ipcRenderer
+			.send('statsSettings', options.conkieStats);
 	});
 	// }}}
 	// }}}
