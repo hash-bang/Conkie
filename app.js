@@ -49,6 +49,7 @@ function loadTheme(finish) {
 					moduleFinder({
 						local: true,
 						global: true,
+						cwd: __dirname,
 						filter: {
 							name: {'$in': findModules}
 						},
