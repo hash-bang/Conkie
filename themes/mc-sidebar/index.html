@@ -26,8 +26,8 @@
 				<highchart config="charts.battery"></highchart>
 			</div>
 			<div class="col-xs-3 text-right">
-				<div class="row">{{stats.battery.levelPercent | percent}}</div>
-				<div class="row">{{stats.battery.charging ? stats.battery.chargingTime : stats.battery.dischargingTime | duration}}</div>
+				<div class="row">{{stats.battery.percent | percent}}</div>
+				<div class="row">{{stats.battery.remainingTime | duration}}</div>
 			</div>
 		</div>
 		<div class="row">

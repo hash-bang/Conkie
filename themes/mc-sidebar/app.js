@@ -8,6 +8,7 @@ var options = {
 			ignoreDevice: ['lo'],
 		},
 	},
+	mainBattery: ['BAT0', 'BAT1'], // Which battery to examine for power info (the first one found gets bound to $scope.stats.battery)
 };
 
 
@@ -111,35 +112,6 @@ app.filter('percent', function() {
 * Each of the data feeds are exposed via the 'stats' structure and correspond to the output of [Conkie-Stats](https://github.com/hash-bang/Conkie-Stats)
 */
 app.controller('conkieController', function($scope, $timeout) {
-	// .battery {{{
-	$scope.battery = {
-		charging: false,
-		levelPercent: 100,
-		chargingTime: undefined,
-		dischargingTime: undefined,
-	};
-
-	navigator.getBattery().then(function(battery) {
-		var batteryUpdate = function() {
-			console.log('BATTERY UPDATE', battery);
-			$scope.$apply(function() {
-				$scope.battery.charging = battery.charging;
-				$scope.battery.levelPercent = Math.ceil(battery.level * 100);
-				$scope.battery.chargingTime = battery.chargingTime;
-				$scope.battery.dischargingTime = battery.dischargingTime;
-			});
-		};
-
-		// Register ourselves as the battery update handler
-		battery.addEventListener('chargingchange', batteryUpdate);
-		battery.addEventListener('levelchange', batteryUpdate);
-		battery.addEventListener('chargingtimechange', batteryUpdate);
-		battery.addEventListener('dischargingtimechange', batteryUpdate);
-
-		batteryUpdate();
-	});
-	// }}}
-
 	// .stats - backend-IPC provided stats object {{{
 	$scope.stats = {}; // Stats object (gets updated via IPC)
 
@@ -151,11 +123,15 @@ app.controller('conkieController', function($scope, $timeout) {
 
 				// Chart data updates {{{
 
-				// .stats.battery {{{
-				$scope.stats.battery = $scope.battery; // Glue main $scope.battery object here so we have a consistant method of accessing stats info
-				if ($scope.stats.battery && isFinite($scope.stats.battery.levelPercent)) {
-					$scope.charts.battery.series[0].data.push($scope.stats.battery.levelPercent);
-					if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
+				// .stats.power {{{
+				if ($scope.stats.power) {
+					$scope.stats.battery = $scope.stats.power.find(function(dev) {
+						return (_.contains(options.mainBattery, dev.device));
+					});
+					if ($scope.stats.battery) {
+						$scope.charts.battery.series[0].data.push($scope.stats.battery.percent);
+						if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
+					}
 				}
 				// }}}
 
@@ -230,6 +206,7 @@ app.controller('conkieController', function($scope, $timeout) {
 				'io', // Also provides 'topIO'
 				'memory',
 				'net',
+				'power',
 				'system',
 				'temperature',
 				'topCPU',
