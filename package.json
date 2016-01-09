@@ -31,14 +31,14 @@
     "conkie-stats": "^1.1.1",
     "ejs": "^2.3.4",
     "electron-detach": "^0.3.0",
-    "electron-prebuilt": "^0.36.0",
+    "electron-prebuilt": "^0.36.3",
     "font-awesome": "^4.5.0",
     "highcharts": "^4.2.1",
     "highcharts-ng": "0.0.11",
     "jquery": "^2.2.0",
     "lodash": "^3.10.1",
     "module-finder": "^4.0.1",
-    "moment": "^2.10.6",
+    "moment": "^2.11.1",
     "temp": "^0.8.3"
   }
 }
