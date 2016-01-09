@@ -11,6 +11,11 @@ var moduleFinder = require('module-finder');
 var os = require('os');
 var temp = require('temp').track();
 
+// Boot {{{
+// Change to this directory to keep Electron's require() statements happy
+process.chdir(__dirname);
+// }}}
+
 // Global objects {{{
 var app;
 var win;
