@@ -34,7 +34,7 @@
     "font-awesome": "^4.5.0",
     "highcharts": "^4.2.1",
     "highcharts-ng": "0.0.11",
-    "jQuery": "^1.7.4",
+    "jquery": "^2.2.0",
     "lodash": "^3.10.1",
     "module-finder": "^4.0.1",
     "moment": "^2.10.6",

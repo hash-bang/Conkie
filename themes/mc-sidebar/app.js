@@ -14,7 +14,7 @@ var options = {
 
 // Imports {{{
 var _ = require('lodash');
-var $ = require('jQuery');
+var $ = require('jquery');
 var angular = require('angular');
 var electron = require('electron');
 var Highcharts = require('highcharts');
