@@ -187,8 +187,10 @@ async()
 		if (!program.background) return next();
 		if (electronDetach({requireCmdlineArg: false})) {
 			if (program.verbose) console.log(colors.blue('[Conkie]'), 'Detached from parent');
+			next();
+		} else {
+			process.exit(0);
 		}
-		next();
 	})
 	.then(loadTheme)
 	.then(function(next) {
