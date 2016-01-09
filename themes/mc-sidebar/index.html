@@ -54,8 +54,8 @@
 					<highchart config="charts[adapter.interface]"></highchart>
 				</div>
 				<div class="col-xs-3 text-right">
-					<div class="row">{{adapter.upSpeed | byteSize}} Up</div>
-					<div class="row">{{adapter.downSpeed | byteSize}} Dn</div>
+					<div class="row">{{adapter.upSpeed | byteSize:true}} Up</div>
+					<div class="row">{{adapter.downSpeed | byteSize:true}} Dn</div>
 				</div>
 			</div>
 		</div>

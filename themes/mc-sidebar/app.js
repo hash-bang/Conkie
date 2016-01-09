@@ -25,12 +25,13 @@ var app = angular.module('app', [
 	'highcharts-ng',
 ]);
 
-/*
-app.config(['highchartsNGProvider', function (highchartsNGProvider) {
-	highchartsNGProvider.lazyLoad();// will load hightcharts (and standalone framework if jquery is not present) from code.hightcharts.com
-}]);
-*/
 
+/**
+* Format a given number of seconds as a human readable duration
+* e.g. 65 => '1m 5s'
+* @param number value The value to process
+* @return string The formatted value
+*/
 app.filter('duration', function() {
 	return function(value) {
 		if (!value || !isFinite(value)) return;
@@ -53,9 +54,17 @@ app.filter('duration', function() {
 	};
 });
 
+
+/**
+* Return a formatted number as a file size
+* e.g. 0 => 0B, 1024 => 1 kB
+* @param mixed value The value to format
+* @param boolean forceZero Whether the filter should return '0 B' if it doesnt know what to do
+* @return string The formatted value
+*/
 app.filter('byteSize', function() {
-	return function(value) {
-		if (!value || !isFinite(value)) return '';
+	return function(value, forceZero) {
+		if (!value || !isFinite(value)) return (forceZero ? '0 B' : null);
 
 		var exponent;
 		var unit;
@@ -78,6 +87,12 @@ app.filter('byteSize', function() {
 	};
 });
 
+
+/**
+* Return a number as a formatted percentage
+* @param mixed value The value to format
+* @return string The formatted value
+*/
 app.filter('percent', function() {
 	return function(value) {
 		if (!value || !isFinite(value)) return '';
@@ -86,6 +101,11 @@ app.filter('percent', function() {
 	};
 });
 
+
+/**
+* The main Conkie controller
+* Each of the data feeds are exposed via the 'stats' structure and correspond to the output of [Conkie-Stats](https://github.com/hash-bang/Conkie-Stats)
+*/
 app.controller('conkieController', function($scope, $timeout) {
 	// .battery {{{
 	$scope.battery = {
