@@ -7,6 +7,9 @@
 var childProcess = require('child_process');
 var electron = require('electron-prebuilt');
 
+// Change to this directory to keep Electron's require() statements happy
+process.chdir(__dirname);
+
 childProcess.spawn(electron, [
 	'--enable-transparent-visuals',
 	'--disable-gpu',
