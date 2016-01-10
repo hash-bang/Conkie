@@ -39,6 +39,7 @@ var app = angular.module('app', [
 ]);
 
 
+// Angular / Filters {{{
 /**
 * Format a given number of seconds as a human readable duration
 * e.g. 65 => '1m 5s'
@@ -114,6 +115,7 @@ app.filter('percent', function() {
 	};
 });
 
+// }}}
 
 /**
 * The main Conkie controller
@@ -157,13 +159,22 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 					var id = adapter.interface; // Use the adapter interface name as the chart name
 					// Not seen this adapter before - create a chart object {{{
 					if (!$scope.charts[id]) $scope.charts[id] = _.defaultsDeep({
-						series: [{
-							data: [],
-						}],
+						series: [
+							{
+								name: 'Download',
+								data: [],
+							},
+							{
+								name: 'Upload',
+								color: '#505050',
+								data: [],
+							},
+						],
 					}, $scope.charts.template);
 					// }}}
 					// Append bandwidth data to the chart {{{
 					if (isFinite(adapter.downSpeed)) $scope.charts[id].series[0].data.push([now, adapter.downSpeed]);
+					if (isFinite(adapter.upSpeed)) $scope.charts[id].series[1].data.push([now, adapter.upSpeed]);
 					// }}}
 				});
 				// }}}
