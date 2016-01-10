@@ -12,6 +12,7 @@ var fspath = require('path');
 var moduleFinder = require('module-finder');
 var os = require('os');
 var temp = require('temp').track();
+var util = require('util');
 
 // Global objects {{{
 var app;
@@ -262,7 +263,7 @@ async()
 
 			electron.ipcMain
 				.on('statsSettings', function(e, options) {
-					if (program.verbose > 2) console.log(colors.blue('[Stats]'), 'Register stats settings', options);
+					if (program.verbose > 2) console.log(colors.blue('[Stats]'), 'Register stats settings', util.inspect(options, {depth: null, colors: true}));
 					conkieStats.settings(options);
 				});
 
@@ -273,7 +274,7 @@ async()
 						return;
 					}
 
-					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Set window position', position);
+					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Set window position', util.inspect(position, {depth: null, colors: true}));
 
 					var mainScreen = electron.screen.getPrimaryDisplay();
 					var calcPosition = boxSizing(position, {
@@ -285,7 +286,7 @@ async()
 						maxHeight: mainScreen.size.height,
 					});
 
-					if (program.verbose > 3) console.log(colors.blue('[Conkie]'), 'Set window position (actual)', calcPosition);
+					if (program.verbose > 3) console.log(colors.blue('[Conkie]'), 'Set window position (actual)', util.inspect(calcPosition, {depth: null, colors: true}));
 
 					if (calcPosition) {
 						win.setBounds({
