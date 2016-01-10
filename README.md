@@ -6,6 +6,8 @@ This project is designed to replace the seminal [Conky project](https://github.c
 
 Conkie relies on a few things to gather system statistics. The upstream repo [Conkie-Stats](https://github.com/hash-bang/Conkie-Stats) details these. Basic install info is provided below.
 
+![Fullscreen Widget Setup](docs/img/full.jpg)
+
 
 **ARE YOU A DESIGNER?**
 
