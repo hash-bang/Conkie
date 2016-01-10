@@ -29,7 +29,7 @@
     "bootstrap": "^3.3.6",
     "box-sizing": "^1.0.1",
     "colors": "^1.1.2",
-    "conkie-stats": "^1.1.3",
+    "conkie-stats": "^1.1.4",
     "ejs": "^2.3.4",
     "electron-detach": "^0.3.0",
     "electron-prebuilt": "^0.36.3",
