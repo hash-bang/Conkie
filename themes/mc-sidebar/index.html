@@ -17,8 +17,8 @@
 			<span class="picture-slot2"><h1>Temp</h1>{{stats.temperature.main}}°C</span>
 			<span class="picture-slot3"><h1>CPU</h1>{{stats.cpu.usage}}%</span>
 			<span class="picture-slot4"><h1>IOread</h1>{{stats.io.totalRead}} Kb</span>
-			<span class="picture-slot5"><h1>Mem</h1>{{stats.memory.used | byteSize}}</span>
-			<span class="picture-slot6"><h1>Down</h1>{{stats.netTotal.downSpeed | byteSize}}</span>
+			<span class="picture-slot5"><h1>Mem</h1>{{stats.memory.used | byteSize:true}}</span>
+			<span class="picture-slot6"><h1>Down</h1>{{stats.netTotal.downSpeed | byteSize:true}}</span>
 		</div>
 		<h1 class="text-rule">Power</h1>
 		<div class="row">
