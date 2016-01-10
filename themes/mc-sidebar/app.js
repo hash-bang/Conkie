@@ -12,6 +12,18 @@ var moment = require('moment');
 var options = {
 	chartPeriod: moment.duration(1, 'hour').as('milliseconds'), // How far backwards each chart should log - this period effectvely equals the X axis range
 	chartPeriodCleanup: moment.duration(5, 'minutes').as('milliseconds'), // Clean up chart data periodically
+	conkieStatsModules: [ // Modules we want Conkie stats to load
+		'cpu',
+		'dropbox',
+		'io', // Also provides 'topIO'
+		'memory',
+		'net',
+		'power',
+		'system',
+		'temperature',
+		'topCPU',
+		'topMemory',
+	],
 	conkieStats: { // Options passed to conkie-stats
 		topProcessCount: 5,
 		net: {
@@ -213,18 +225,7 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 	// Configure conkie-stats to provide us with information {{{
 	$timeout(function() {
 		electron.ipcRenderer
-			.send('statsRegister', [
-				'cpu',
-				'dropbox',
-				'io', // Also provides 'topIO'
-				'memory',
-				'net',
-				'power',
-				'system',
-				'temperature',
-				'topCPU',
-				'topMemory',
-			]);
+			.send('statsRegister', options.conkieStatsModules)
 	});
 	$timeout(function() {
 		electron.ipcRenderer
