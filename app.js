@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var async = require('async-chainable');
 var asyncExec = require('async-chainable-exec');
+var boxSizing = require('box-sizing');
 var colors = require('colors');
 var conkieStats = require('conkie-stats');
 var ejs = require('ejs');
@@ -195,8 +196,6 @@ async()
 	.then(loadTheme)
 	.then(function(next) {
 		// Setup page {{{
-		var mainScreen = electron.screen.getPrimaryDisplay();
-
 		// Create the browser window.
 		win = new electron.BrowserWindow(
 			program.debug
@@ -208,7 +207,7 @@ async()
 					show: false,
 				}
 				: {
-					width: 240,
+					width: 200,
 					height: 1000,
 					frame: false,
 					resizable: false,
@@ -217,8 +216,8 @@ async()
 					type: 'desktop',
 					show: false,
 					transparent: true,
-					x: mainScreen.size.width - 243,
-					y: 30,
+					x: 10,
+					y: 10,
 					center: false,
 				}
 		);
@@ -243,7 +242,7 @@ async()
 		// }}}
 	})
 	.parallel([
-		// Stats collection {{{
+		// Listen for messages {{{
 		function(next) {
 			conkieStats
 				.on('error', function(err) {
@@ -265,6 +264,39 @@ async()
 				.on('statsSettings', function(e, options) {
 					if (program.verbose > 2) console.log(colors.blue('[Stats]'), 'Register stats settings', options);
 					conkieStats.settings(options);
+				});
+
+			electron.ipcMain
+				.on('setPosition', function(e, position) {
+					if (program.debug) {
+						console.log(colors.blue('[Conkie]'), 'Set window position', colors.red('ignored in debug mode'));
+						return;
+					}
+
+					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Set window position', position);
+
+					var mainScreen = electron.screen.getPrimaryDisplay();
+					var calcPosition = boxSizing(position, {
+						left: 10,
+						top: 10,
+						width: '33%',
+						height: '33%',
+						maxWidth: mainScreen.size.width,
+						maxHeight: mainScreen.size.height,
+					});
+
+					if (program.verbose > 3) console.log(colors.blue('[Conkie]'), 'Set window position (actual)', calcPosition);
+
+					if (calcPosition) {
+						win.setBounds({
+							x: calcPosition.left,
+							y: calcPosition.top,
+							width: calcPosition.width,
+							height: calcPosition.height,
+						});
+					} else {
+						if (program.verbose > 2) console.log(colors.blue('[Conkie/setPosition]'), colors.red('ERROR'), 'Invalid window position object', position);
+					}
 				});
 
 			if (program.debug) {

@@ -1,22 +1,3 @@
-// User configurable options
-var options = {
-	chartHistory: 50, // How many spark line chart positions to retain before removing them
-	conkieStats: { // Options passed to conkie-stats
-		topProcessCount: 5,
-		net: {
-			ignoreNoIP: true,
-			ignoreDevice: ['lo'],
-		},
-	},
-	mainBattery: ['BAT0', 'BAT1'], // Which battery to examine for power info (the first one found gets bound to $scope.stats.battery)
-};
-
-
-
-// Code only below this line - here be dragons
-// -------------------------------------------
-
-
 // Imports {{{
 var _ = require('lodash');
 var $ = require('jquery');
@@ -25,6 +6,33 @@ var electron = require('electron');
 var Highcharts = require('highcharts');
 var moment = require('moment');
 // }}}
+
+
+// User configurable options
+var options = {
+	chartPeriod: moment.duration(1, 'hour').as('milliseconds'), // How far backwards each chart should log - this period effectvely equals the X axis range
+	chartPeriodCleanup: moment.duration(5, 'minutes').as('milliseconds'), // Clean up chart data periodically
+	conkieStats: { // Options passed to conkie-stats
+		topProcessCount: 5,
+		net: {
+			ignoreNoIP: true,
+			ignoreDevice: ['lo'],
+		},
+	},
+	mainBattery: ['BAT0', 'BAT1'], // Which battery to examine for power info (the first one found gets bound to $scope.stats.battery)
+	window: {
+		left: -10,
+		top: 40,
+		width: 240,
+		height: 1000,
+	},
+};
+
+
+
+// Code only below this line - here be dragons
+// -------------------------------------------
+
 
 var app = angular.module('app', [
 	'highcharts-ng',
@@ -111,7 +119,7 @@ app.filter('percent', function() {
 * The main Conkie controller
 * Each of the data feeds are exposed via the 'stats' structure and correspond to the output of [Conkie-Stats](https://github.com/hash-bang/Conkie-Stats)
 */
-app.controller('conkieController', function($scope, $timeout) {
+app.controller('conkieController', function($scope, $interval, $timeout) {
 	// .stats - backend-IPC provided stats object {{{
 	$scope.stats = {}; // Stats object (gets updated via IPC)
 
@@ -119,6 +127,7 @@ app.controller('conkieController', function($scope, $timeout) {
 		// Event: updateStats {{{
 		.on('updateStats', function(e, data) {
 			$scope.$apply(function() {
+				var now = new Date();
 				$scope.stats = data;
 
 				// Chart data updates {{{
@@ -128,25 +137,18 @@ app.controller('conkieController', function($scope, $timeout) {
 					$scope.stats.battery = $scope.stats.power.find(function(dev) {
 						return (_.contains(options.mainBattery, dev.device));
 					});
-					if ($scope.stats.battery) {
-						$scope.charts.battery.series[0].data.push($scope.stats.battery.percent);
-						if ($scope.charts.battery.series[0].data.length > options.chartHistory) $scope.charts.battery.series[0].data.shift();
-					}
+					if ($scope.stats.battery) $scope.charts.battery.series[0].data.push([now, $scope.stats.battery.percent]);
 				}
 				// }}}
 
 				// .stats.io {{{
-				if (isFinite($scope.stats.io.totalRead)) {
-					$scope.charts.io.series[0].data.push($scope.stats.io.totalRead);
-					if ($scope.charts.io.series[0].data.length > options.chartHistory) $scope.charts.io.series[0].data.shift();
-				}
+				if (isFinite($scope.stats.io.totalRead)) $scope.charts.io.series[0].data.push([now, $scope.stats.io.totalRead]);
 				// }}}
 
 				// .stats.memory {{{
 				if (isFinite($scope.stats.memory.used)) {
 					if ($scope.stats.memory.total) $scope.charts.memory.options.yAxis.max = $scope.stats.memory.total;
-					$scope.charts.memory.series[0].data.push($scope.stats.memory.used);
-					if ($scope.charts.memory.series[0].data.length > options.chartHistory) $scope.charts.memory.series[0].data.shift();
+					$scope.charts.memory.series[0].data.push([now, $scope.stats.memory.used]);
 				}
 				// }}}
 
@@ -157,24 +159,17 @@ app.controller('conkieController', function($scope, $timeout) {
 					if (!$scope.charts[id]) $scope.charts[id] = _.defaultsDeep({
 						series: [{
 							data: [],
-							pointStart: 1,
 						}],
 					}, $scope.charts.template);
 					// }}}
 					// Append bandwidth data to the chart {{{
-					if (isFinite(adapter.downSpeed)) {
-						$scope.charts[id].series[0].data.push(adapter.downSpeed);
-						if ($scope.charts[id].series[0].data.length > options.chartHistory) $scope.charts[id].series[0].data.shift();
-					}
+					if (isFinite(adapter.downSpeed)) $scope.charts[id].series[0].data.push([now, adapter.downSpeed]);
 					// }}}
 				});
 				// }}}
 
 				// .stats.system {{{
-				if (isFinite($scope.stats.system.cpuUsage)) {
-					$scope.charts.cpu.series[0].data.push($scope.stats.system.cpuUsage);
-					if ($scope.charts.cpu.series[0].data.length > options.chartHistory) $scope.charts.cpu.series[0].data.shift();
-				}
+				if (isFinite($scope.stats.system.cpuUsage)) $scope.charts.cpu.series[0].data.push([now, $scope.stats.system.cpuUsage]);
 				// }}}
 
 				// META: .stats.time {{{
@@ -193,7 +188,14 @@ app.controller('conkieController', function($scope, $timeout) {
 					upSpeed: 0,
 				});
 				// }}}
+
+				// Change the periodStart of each chart {{{
+				_.forEach($scope.charts, function(chart, id) {
+					chart.options.xAxis.periodStart = new Date(now - options.chartPeriod);
+				});
 				// }}}
+				// }}}
+
 			});
 		})
 	// }}}
@@ -217,6 +219,28 @@ app.controller('conkieController', function($scope, $timeout) {
 		electron.ipcRenderer
 			.send('statsSettings', options.conkieStats);
 	});
+	// }}}
+	// Position the widget {{{
+	$timeout(function() {
+		electron.ipcRenderer
+			.send('setPosition', options.window);
+	});
+	// }}}
+	// Periodically clean up redundent data for all charts {{{
+	$interval(function() {
+		console.log('CLEAN!');
+		var cleanTo = Date.now() - options.chartPeriod;
+		_.forEach($scope.charts, function(chart, id) {
+			_.forEach(chart.series, function(series, seriesIndex) {
+				// Shift all data if the date has fallen off the observed time range
+				console.log('CLEAN', id, seriesIndex, series.data);
+				series.data = _.dropWhile(series.data, function(d) {
+					return (d[0] < cleanTo);
+				});
+				console.log('CLEANS', id, series.data);
+			});
+		});
+	}, options.chartPeriodCleanup);
 	// }}}
 	// }}}
 
@@ -246,6 +270,8 @@ app.controller('conkieController', function($scope, $timeout) {
 				text: ''
 			},
 			xAxis: {
+				type: 'datetime',
+				periodStart: new Date(Date.now() - options.chartPeriod),
 				labels: {
 					enabled: false
 				},
@@ -309,7 +335,6 @@ app.controller('conkieController', function($scope, $timeout) {
 		series: [{
 			data: [],
 			color: '#FFFFFF',
-			pointStart: 1,
 		}],
 	}, $scope.charts.template);
 
@@ -320,7 +345,6 @@ app.controller('conkieController', function($scope, $timeout) {
 		series: [{
 			data: [],
 			color: '#FFFFFF',
-			pointStart: 1,
 		}],
 	}, $scope.charts.template);
 
@@ -332,7 +356,6 @@ app.controller('conkieController', function($scope, $timeout) {
 		series: [{
 			data: [],
 			color: '#FFFFFF',
-			pointStart: 1,
 		}],
 	}, $scope.charts.template);
 
@@ -343,7 +366,6 @@ app.controller('conkieController', function($scope, $timeout) {
 		series: [{
 			data: [],
 			color: '#FFFFFF',
-			pointStart: 1,
 		}],
 	}, $scope.charts.template);
 	// }}}
