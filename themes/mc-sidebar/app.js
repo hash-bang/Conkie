@@ -195,12 +195,6 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 				if (isFinite($scope.stats.system.cpuUsage)) $scope.charts.cpu.series[0].data.push([now, $scope.stats.system.cpuUsage]);
 				// }}}
 
-				// META: .stats.time {{{
-				$scope.stats.time = {
-					t24h: moment().format('HH:mm'),
-				};
-				// }}}
-
 				// META: .stats.netTotal {{{
 				$scope.stats.netTotal = $scope.stats.net.reduce(function(total, adapter) {
 					if (adapter.downSpeed) total.downSpeed += adapter.downSpeed;
@@ -254,6 +248,13 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 		});
 	}, options.chartPeriodCleanup);
 	// }}}
+	// }}}
+
+	// .time {{{
+	$interval(function() {
+		$scope.time = moment().format('HH:mm');
+		console.log('TIME IS NOW', $scope.time);
+	}, 1000);
 	// }}}
 
 	// Charts {{{
