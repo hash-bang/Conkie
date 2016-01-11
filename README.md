@@ -42,10 +42,12 @@ Conkie themes are a single HTML file which links to other required assets. You c
 
 To create a Conkie theme simply design your webpage as you require and make a call to `require('electron').ipcRenderer.on('updateStats', ...)` to gather system statistics. Some examples are provided in the [themes](./themes) folder using AngularJS.
 
+
 **Tips:**
 
 * To keep NPM happy, all dependencies should be NPM modules themselves. For example if you require Bootstrap use the NPM version of Bootstrap and load via `var bootstrap = require('bootstrap')` somewhere in your themes JavaScript files.
 * A lot of weird kludges and fixes exist to try and load and rewrite your widgets contents inline. See the bottom of this README for the nasty internal details. Should Conkie be screwing up your theme try using lots of verbosity (e.g. `-vvvv`) to see what its doing. If its still acting strange please get in touch.
+* Running Conkie with the `--debug` flag opens the theme in a Electron development console. This is useful to see console output.
 
 
 Theme API Reference
