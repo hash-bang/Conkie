@@ -19,6 +19,8 @@ I'm happy to help anyone who has an existing Conky theme that needs to be conver
 Installing
 ==========
 
+	# Install Node + NPM - see https://nodejs.org/en/download
+
 	# Install all Conkie's external statistics gathering tools
 	sudo apt-get install bwm-ng lm-sensors iotop
 
