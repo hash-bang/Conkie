@@ -17,6 +17,7 @@ var util = require('util');
 // Global objects {{{
 var app;
 var win;
+var onBattery; // Whether we are running in low-refresh mode
 var tempFile; // File compiled at boot containing main HTML body
 // }}}
 
@@ -154,6 +155,8 @@ program
 	.option('-v, --verbose', 'Be verbose. Specify multiple times for increasing verbosity', function(i, v) { return v + 1 }, 0)
 	.option('-t, --theme [file]', 'Specify main theme HTML file', __dirname + '/themes/default/index.html')
 	.option('-b, --background', 'Detach from parent (prevents quitting when parent process dies)')
+	.option('--refresh [ms]', 'Time in MS to refresh all system statistics (when on power, default = 1s)', 1000)
+	.option('--refresh-battery [ms]', 'Time in MS to refresh system stats (when on battery, default = 10s)', 10000)
 	.option('--debug-stats', 'Show stats object being transmitted to front-end')
 	.option('--watch', 'Watch the theme directory and reload on any changes')
 	.option('--no-color', 'Disable colors')
@@ -251,6 +254,16 @@ async()
 				})
 				.on('update', function(stats) {
 					if (program.debugStats) console.log(colors.blue('[Stats]'), JSON.stringify(stats, null, '\t'));
+					var batStatus = _.get(stats, 'power[0].status');
+					if (!onBattery && batStatus == 'discharging') {
+						if (program.verbose > 1) console.log(colors.blue('[Stats]'), 'Detected battery mode - adjusting stats poll to', colors.cyan(program.refreshBattery + 'ms'));
+						conkieStats.setPollFreq(program.refreshBattery);
+						onBattery = true;
+					} else if (onBattery && batStatus != 'discharging') {
+						if (program.verbose > 1) console.log(colors.blue('[Stats]'), 'Detected powered mode - adjusting stats poll to', colors.cyan(program.refresh+ 'ms'));
+						conkieStats.setPollFreq(program.refresh);
+						onBattery = false;
+					}
 					win.webContents.send('updateStats', stats);
 				});
 
@@ -314,8 +327,12 @@ async()
 			async()
 				.use(asyncExec)
 				.execDefaults({
-					log: function(cmd) { console.log(colors.blue('[Conkie/Xsetup]'), cmd.cmd + ' ' + cmd.params.join(' ')) },
-					out: function(line) { console.log(colors.blue('[Conkie/Xsetup]'), colors.grey('>'), line) },
+					log: function(cmd) { console.log(colors.blue('[Conkie/XSetup]'), cmd.cmd + ' ' + cmd.params.join(' ')) },
+					out: function(line) {
+						line.split('\n').forEach(function(l) {
+							console.log(colors.blue('[Conkie/XSetup]'), colors.grey('>'), l);
+						});
+					},
 				})
 				.exec([
 					'wmctrl', 

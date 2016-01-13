@@ -22,7 +22,10 @@
 		</div>
 
 		<div ng-if="stats.battery">
-			<h1 class="text-rule">Power</h1>
+			<h1 class="text-rule">
+				Power
+				{{onBattery ? '(DECHARGING)' : ''}}
+			</h1>
 			<div class="row">
 				<div class="col-xs-8">
 					<highchart config="charts.battery"></highchart>

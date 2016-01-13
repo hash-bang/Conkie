@@ -2,7 +2,7 @@ Conkie
 ======
 NodeJS + Electron desktop widgets.
 
-This project is designed to replace the seminal [Conky project](https://github.com/brndnmtthws/conky) by Brenden Matthews with a Browser based desktop widget.
+This project is designed to replace the seminal [Conky project](https://github.com/brndnmtthws/conky) by Brenden Matthews with a Browser based desktop widget (Yes this is similar to how Windows '98 worked but less horrifying).
 
 Conkie relies on a few things to gather system statistics. The upstream repo [Conkie-Stats](https://github.com/hash-bang/Conkie-Stats) details these. Basic install info is provided below.
 
@@ -14,6 +14,16 @@ Conkie relies on a few things to gather system statistics. The upstream repo [Co
 Please get in touch. I could really do with a bit of design help with perfecting this project.
 
 I'm happy to help anyone who has an existing Conky theme that needs to be converted over to Conkie. Please [contact me](mailto:matt@mfdc.biz).
+
+
+Features
+--------
+
+* HTML based layout - style your desktop widgets just as you would a web page
+* Theme based customizability - create your own skins or use the provided examples
+* Low power mode - when on battery the refresh rate changes (set with `--refresh` and `--refresh-battery`) so its less of battery hog
+* Modular system statistics - lots of functionality including CPU, Memory, Disks, IO usage, Dropbox and more.
+
 
 
 Installing
@@ -121,7 +131,6 @@ The theme file gets read into memory then re-written on the fly to read each ext
 TODO
 ====
 
-* **Low power mode** - Conky has a feature where the refresh rate of the widget can be adjusted if running off battery. Adding this could cut down on CPU usage when we need to preserve battery life.
 * **Loading themes via NPM module** - It should be possible to load themes by direct path *or* via NPM module name - e.g. `conkie -t conkie-theme-fantastico`
 * **Mac compatibility** - Not being a Mac user I cant really help here until I manage to track one down. This applies equally to the Conkie-Stats package where we need to gather system stats in a decently cross-platform way.
 * **Windows compatibility** - Like Mac compatibility this should be possible given enough time and inclination. If anyone wishes to volunteer their time I would be grateful.
