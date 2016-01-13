@@ -327,8 +327,12 @@ async()
 			async()
 				.use(asyncExec)
 				.execDefaults({
-					log: function(cmd) { console.log(colors.blue('[Conkie/XSetup]'), cmd.cmd + ' ' + cmd.params.join(' ')) },
+					log: function(cmd) {
+						if (!program.verbose) return;
+						console.log(colors.blue('[Conkie/XSetup]'), cmd.cmd + ' ' + cmd.params.join(' '));
+					},
 					out: function(line) {
+						if (!program.verbose) return;
 						line.split('\n').forEach(function(l) {
 							console.log(colors.blue('[Conkie/XSetup]'), colors.grey('>'), l);
 						});
