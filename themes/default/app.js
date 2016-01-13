@@ -171,14 +171,20 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 					var id = adapter.interface; // Use the adapter interface name as the chart name
 					// Not seen this adapter before - create a chart object {{{
 					if (!$scope.charts[id]) $scope.charts[id] = _.defaultsDeep({
+						yAxis: {
+							min: 0,
+							max: null,
+						},
 						series: [
 							{
-								name: 'Download',
+								// name: 'Download',
 								data: [],
+								color: '#FFFFFF',
 							},
 							{
 								name: 'Upload',
-								color: '#505050',
+								color: '#606060',
+								fillColor: 'rgba(144,144,144,0.25)',
 								data: [],
 							},
 						],
@@ -253,7 +259,6 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 	// .time {{{
 	$interval(function() {
 		$scope.time = moment().format('HH:mm');
-		console.log('TIME IS NOW', $scope.time);
 	}, 1000);
 	// }}}
 
@@ -354,6 +359,7 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 	$scope.charts.memory = _.defaultsDeep({
 		yAxis: {
 			min: 0,
+			max: null, // Gets corrected on next stats cycle
 		},
 		series: [{
 			data: [],
@@ -375,6 +381,7 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 	$scope.charts.io = _.defaultsDeep({
 		yAxis: {
 			min: 0,
+			max: null,
 		},
 		series: [{
 			data: [],
