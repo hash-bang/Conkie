@@ -152,7 +152,7 @@ program
 	.version(require('./package.json').version)
 	.option('-d, --debug', 'Enter debug mode. Show as window and enable dev-tools')
 	.option('-v, --verbose', 'Be verbose. Specify multiple times for increasing verbosity', function(i, v) { return v + 1 }, 0)
-	.option('-t, --theme [file]', 'Specify main theme HTML file', __dirname + '/themes/mc-sidebar/index.html')
+	.option('-t, --theme [file]', 'Specify main theme HTML file', __dirname + '/themes/default/index.html')
 	.option('-b, --background', 'Detach from parent (prevents quitting when parent process dies)')
 	.option('--debug-stats', 'Show stats object being transmitted to front-end')
 	.option('--watch', 'Watch the theme directory and reload on any changes')
