@@ -6,7 +6,6 @@ var colors = require('colors');
 var conkieStats = require('conkie-stats');
 var ejs = require('ejs');
 var electron = require('electron');
-var electronDetach = require('electron-detach');
 var fs = require('fs');
 var fspath = require('path');
 var moduleFinder = require('module-finder');
@@ -187,15 +186,6 @@ async()
 			})
 			.once('error', next);
 		// }}}
-	})
-	.then(function(next) {
-		if (!program.background) return next();
-		if (electronDetach({requireCmdlineArg: false})) {
-			if (program.verbose) console.log(colors.blue('[Conkie]'), 'Detached from parent');
-			next();
-		} else {
-			process.exit(0);
-		}
 	})
 	.then(loadTheme)
 	.then(function(next) {
