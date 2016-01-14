@@ -11,7 +11,7 @@ var electron = require('electron-prebuilt');
 var detach = process.argv.some(function(i) {
 	return (
 		i == '--background' || // Is the longhand flag
-		/^-.*b.*$/.test(i) // Is contained in a shorthand flag
+		/^-(?!-).*b.*$/.test(i) // Is contained in a shorthand flag
 	);
 });
 
