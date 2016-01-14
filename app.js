@@ -265,7 +265,8 @@ async()
 						onBattery = false;
 					}
 					win.webContents.send('updateStats', stats);
-				});
+				})
+				.setPollFreq(program.refresh);
 
 			electron.ipcMain
 				.on('statsRegister', function() {
