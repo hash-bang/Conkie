@@ -161,7 +161,7 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 
 				// .stats.memory {{{
 				if (isFinite($scope.stats.memory.used)) {
-					if ($scope.stats.memory.total) $scope.charts.memory.options.yAxis.max = $scope.stats.memory.total;
+					if ($scope.stats.memory.total) $scope.charts.memory.yAxis.max = $scope.stats.memory.total;
 					$scope.charts.memory.series[0].data.push([now, $scope.stats.memory.used]);
 				}
 				// }}}
