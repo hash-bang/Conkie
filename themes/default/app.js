@@ -198,7 +198,7 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 				// }}}
 
 				// .stats.system {{{
-				if (isFinite($scope.stats.system.cpuUsage)) $scope.charts.cpu.series[0].data.push([now, $scope.stats.system.cpuUsage]);
+				if (isFinite($scope.stats.cpu.usage)) $scope.charts.cpu.series[0].data.push([now, $scope.stats.cpu.usage]);
 				// }}}
 
 				// META: .stats.netTotal {{{
