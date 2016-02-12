@@ -21,6 +21,7 @@ Features
 
 * HTML based layout - style your desktop widgets just as you would a web page
 * Theme based customizability - create your own skins or use the provided examples
+* Modular themes - NPM managed themes can import their own dependencies as needed
 * Low power mode - when on battery the refresh rate changes (set with `--refresh` and `--refresh-battery`) so its less of battery hog
 * Modular system statistics - lots of functionality including CPU, Memory, Disks, IO usage, Dropbox and more.
 
@@ -42,22 +43,26 @@ Run Conkie as a background process with:
 
 	conkie -b
 
+To specify a specific theme (instead of the default) either provide the path to the HTML file or the name of the NPM module:
+
+	conkie -b -t conkie-theme-foobar
 
 Use `--help` for other command line help.
 
 
 Themes
 =======
-Conkie themes are a single HTML file which links to other required assets. You can override the default theme file by specifying `--theme <path to file>`.
+Conkie themes are a single HTML file which links to other required assets. You can override the default theme file by specifying `--theme <path to html file|npm module name>`.
 
-To create a Conkie theme simply design your webpage as you require and make a call to `require('electron').ipcRenderer.on('updateStats', ...)` to gather system statistics. Some examples are provided in the [themes](./themes) folder using AngularJS.
+To create a Conkie theme simply design your webpage as you require and make a call to `require('electron').ipcRenderer.on('updateStats', ...)` to gather system statistics. A simple example is provided in the [themes](./themes) folder. You may also be interested in the source of [Conkie-Theme-Default](FIXME) NPM module which is the default shipped Conkie theme.
 
 
 **Tips:**
 
-* To keep NPM happy, all dependencies should be NPM modules themselves. For example if you require Bootstrap use the NPM version of Bootstrap and load via `var bootstrap = require('bootstrap')` somewhere in your themes JavaScript files.
+* To keep NPM happy, all dependencies should be NPM modules themselves. For example if you require Bootstrap use the NPM version of Bootstrap and load via `var bootstrap = require('bootstrap')` somewhere in your themes JavaScript files. Make sure you include this as a dependency in your `package.json` file so NPM pulls in whats needed during the install.
 * A lot of weird kludges and fixes exist to try and load and rewrite your widgets contents inline. See the bottom of this README for the nasty internal details. Should Conkie be screwing up your theme try using lots of verbosity (e.g. `-vvvv`) to see what its doing. If its still acting strange please get in touch.
 * Running Conkie with the `--debug` flag opens the theme in a Electron development console. This is useful to see console output.
+* Running Connie with the `--debug-stats` flag dumps the stats object to the console on each refresh.
 
 
 Theme API Reference
@@ -131,6 +136,5 @@ The theme file gets read into memory then re-written on the fly to read each ext
 TODO
 ====
 
-* **Loading themes via NPM module** - It should be possible to load themes by direct path *or* via NPM module name - e.g. `conkie -t conkie-theme-fantastico`
 * **Mac compatibility** - Not being a Mac user I cant really help here until I manage to track one down. This applies equally to the Conkie-Stats package where we need to gather system stats in a decently cross-platform way.
 * **Windows compatibility** - Like Mac compatibility this should be possible given enough time and inclination. If anyone wishes to volunteer their time I would be grateful.

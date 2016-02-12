@@ -35,96 +35,227 @@ var tempFile; // File compiled at boot containing main HTML body
 */
 function loadTheme(finish) {
 	async()
-		.then('content', function(next) {
-			// Read in theme file {{{
-			fs.readFile(program.theme, 'utf8', next);
+		.set('themeMain', '') // Path to main HTML file (either path or module+path)
+		.set('themeDir', '') // Path to main directory of theme
+		.parallel({
+			themeStats: function(next) {
+				fs.stat(program.theme, function(err, stat) {
+					next(null, stat); // Ignore file not found errors
+				});
+			},
+			themeModule: function(next) {
+				moduleFinder({
+					local: true,
+					global: true,
+					cwd: __dirname,
+					filter: {
+						name: program.theme,
+					},
+				}).then(function(res) {
+					if (res.length) { // Found a matching module
+						return next(null, res[0]);
+					} else { // No module matching this found
+						return next();
+					}
+				}, next);
+			},
+		})
+		.then(function(next) {
+			// Figure out themeMain + themeDir {{{
+			if (this.themeStats && this.themeStats.isFile()) { // Process as path
+				this.themeMain = program.theme;
+				this.themeDir = fspath.dirname(this.themeMain);
+				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme path', colors.cyan(this.themeMain));
+				next();
+			} else if (this.themeModule) {
+				this.themeMain = fspath.join(fspath.dirname(this.themeModule.path), this.themeModule.pkg.main);
+				this.themeDir = fspath.dirname(this.themeMain);
+				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme module', colors.cyan(this.themeModule.pkg.name), 'with HTML path', colors.cyan(this.themeMain));
+				next();
+			} else {
+				next('No theme file or matching module found');
+			}
 			// }}}
 		})
 		.then('content', function(next) {
-			// Scoop all CSS / JS asset links {{{
-			// Prepare Async process loader {{{
-			var baseContent = this.content;
-			var findModules = []; // List of modules we will be needing (fed into module-finder query)
-			var modules; // Result of module search
-			var scooper = async()
+			// Read in theme file {{{
+			fs.readFile(this.themeMain, 'utf8', next);
+			// }}}
+		})
+		.then('content', function(next) {
+			// Recompile main HTML file {{{
+			async()
+				.set('themeDir', this.themeDir)
+				.set('content', this.content)
+				.set('findModules', [])
+				.set('moduleBlacklist', [ // Never try to replace these module requires
+					'electron', // Electron object is provided by parent process
+					'lodash', // Already included in main project
+				])
+				.set('markers', [])
+				.parallel([
+					// Extract all required CSS modules {{{
+					function(next) {
+						var self = this;
+						this.content = this.content.replace(/<link.+?href="<%=paths.modules%>\/(.+?)\/(.+?)".*?>/g, function(block, module, cssFile) {
+							var marker = '<!-- CSS FOR [' + module + '/' + cssFile + '] -->';
+							self.markers.push({type: 'css', module: module, file: cssFile, marker: marker});
+							self.findModules.push(module);
+							return marker;
+						});
+						next();
+					},
+					// }}}
+					// Extract all required JS modules {{{
+					function(next) {
+						var self = this;
+						this.content = this.content.replace(/<script.+?src="<%=paths.modules%>\/(.+?)\/(.+?)".*>\s*<\/script>/, function(block, module, jsFile) {
+							var marker = '<!-- JS FOR [' + module + '/' + jsFile + '] -->';
+							self.markers.push({type: 'js', module: module, file: jsFile, marker: marker});
+							self.findModules.push(module);
+							return marker;
+						});
+						next();
+					},
+					// }}}
+					// Extract all local JS modules {{{
+					function(next) {
+						var self = this;
+						this.content = this.content.replace(/<script.+?src="<%=paths.theme%>\/(.+?)".*?>\s*<\/script>/, function(block, jsFile) {
+							var marker = '<!-- JS LOCAL FOR [' + jsFile + '] -->';
+							self.markers.push({type: 'jsLocal', file: fspath.join(self.themeDir, jsFile), marker: marker});
+							return marker;
+						});
+						next();
+					},
+					// }}}
+				])
+
+				// Cache all local JS files contents so we know what modules we will need in the compile stage {{{
 				.then(function(next) {
-					if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Find modules', colors.cyan(findModules.map(function(m) { return colors.cyan(m) }).join(', ')));
+					var self = this;
+					async()
+						.forEach(_.filter(this.markers, {type: 'jsLocal'}), function(next, m) {
+							fs.readFile(m.file, 'utf8', function(err, content) {
+								if (err) return next('Error loading JS file "' + m.file + '" required as JS local pre-load');
+
+								m.content = content;
+
+								// Scan for required modules in this file {{{
+								var requireModRe = /require\(("|')(.+?)\1\)/g;
+								var match;
+								while (match = requireModRe.exec(content)) {
+									self.findModules.push(match[2]);
+								}
+								// }}}
+
+								next();
+							});
+						})
+						.end(next);
+				})
+				// }}}
+
+				// Find all required NPM modules in findModules {{{
+				.then('modules', function(next) {
+					var self = this;
+
+					this.findModules = _(this.findModules)
+						.uniq()
+						.filter(function(m) { return !_.includes(self.moduleBlacklist, m) }) // Remove blacklisted modules
+						.value();
+
+					if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Find modules', colors.cyan(this.findModules.map(function(m) { return colors.cyan(m) }).join(', ')));
 					moduleFinder({
 						local: true,
 						global: true,
-						cwd: __dirname,
+						cwd: this.themeDir,
 						filter: {
-							name: {'$in': findModules}
+							name: {'$in': this.findModules}
 						},
-					}).then(function(res) { modules = res; return next() }, next);
-				});
-			// }}}
-
-			// Precompile various RegExps {{{
-			var linkExtract = /<link.+?href="<%=paths.modules%>\/(.+?)\/(.+?)"/;
-			var scriptExtract = /<script.+?src="<%=paths.modules%>\/(.+?)\/(.+?)"/;
-			// }}}
-			baseContent = baseContent
-				// Inline re-write all CSS assets {{{
-				.replace(/<link.+?href="<%=paths.modules%>\/.+?".*?>/g, function(block) {
-					var bits = linkExtract.exec(block);
-					var module = bits[1];
-					var cssFile = bits[2];
-					var marker = '<!-- CSS FOR [' + module + '/' + cssFile + '] -->';
-
-					findModules.push(module);
-					scooper.defer('css-' + cssFile, function(next) {
-						var mod = modules.find(function(m) { return m.pkg.name == module });
-						if (!mod) return next('Cannot find module "' + module + '" required by CSS pre-load of "' + cssFile + '"');
-
-						var cssPath = fspath.join(fspath.dirname(mod.path), cssFile);
-
-						if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS asset', colors.cyan(cssPath));
-						fs.readFile(cssPath, 'utf8', function(err, content) {
-							if (err) return finish(err);
-							baseContent = baseContent.replace(marker, marker + '\n' + '<style>' + content + '</style>');
-							next();
-						});
-					});
-					return marker;
-				})
-				// }}}
-				// Inline re-write all JS assets {{{
-				.replace(/<script.+src="<%=paths.modules%>\/.+?".*?>/g, function(block) {
-					var bits = scriptExtract.exec(block);
-					var module = bits[1];
-					var jsFile = bits[2];
-					var marker = '<!-- JS FOR [' + module + '/' + jsFile + '] -->';
-
-					findModules.push(module);
-					scooper.defer('js-' + jsFile, function(next) {
-						var mod = modules.find(function(m) { return m.pkg.name == module });
-						if (!mod) return next('Cannot find module "' + module + '" required by JS pre-load of "' + jsFile + '"');
-
-						var jsPath = fspath.join(fspath.dirname(mod.path), jsFile);
-
-						if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read JS asset', colors.cyan(jsPath));
-						fs.readFile(jsPath, 'utf8', function(err, content) {
-							if (err) return finish(err);
-							baseContent = baseContent.replace(marker, marker + '\n' + '<script>' + content + '</script>');
-							next();
-						});
-					});
-					return marker;
+					}).then(function(res) { next(null, res) }, next);
 				})
 				// }}}
 
-			// Kick all the defered processes off {{{
-			scooper
-				.await()
+				// Replace markers with content know we know the real module location {{{
+				.parallel([
+					// Replace all required CSS modules {{{
+					function(next) {
+						var self = this;
+						async()
+							.forEach(_.filter(this.markers, {type: 'css'}), function(next, m) {
+								var npm = self.modules.find(function(mod) { return mod.pkg.name == m.module });
+								if (!npm) return next('Cannot find NPM module "' + m.module + '" required by CSS pre-load of "' + m.file + '"');
+
+								var cssPath = fspath.join(fspath.dirname(npm.path), m.file);
+
+								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS asset', colors.cyan(cssPath));
+								fs.readFile(cssPath, 'utf8', function(err, content) {
+									if (err) return finish(err);
+									self.content = self.content.replace(m.marker, m.marker + '\n' + '<style>' + content + '</style>');
+									next();
+								});
+							})
+							.end(next);
+					},
+					// }}}
+					// Replace all required JS modules {{{
+					function(next) {
+						var self = this;
+						async()
+							.forEach(_.filter(this.markers, {type: 'js'}), function(next, m) {
+								var npm = self.modules.find(function(mod) { return mod.pkg.name == m.module });
+								if (!npm) return next('Cannot find NPM module "' + m.module + '" required by JS pre-load of "' + m.file + '"');
+
+								var jsPath = fspath.join(fspath.dirname(npm.path), m.file);
+
+								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read JS asset', colors.cyan(jsPath));
+								fs.readFile(jsPath, 'utf8', function(err, content) {
+									if (err) return finish(err);
+									self.content = self.content.replace(m.marker, m.marker + '\n' + '<script>' + content + '</script>');
+									next();
+								});
+							})
+							.end(next);
+					},
+					// }}}
+					// Replace all required JS local modules {{{
+					function(next) {
+						var self = this;
+						async()
+							.forEach(_.filter(this.markers, {type: 'jsLocal'}), function(next, m) {
+								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Rewrite JS local asset', colors.cyan(m.file));
+
+								// Replace required modules in this file {{{
+								m.content = m.content.replace(/require\(("|')(.+?)\1\)/g, function(block, enclose, module) {
+									if (_.includes(self.moduleBlacklist, module)) return block; // Skip blacklisted modules
+
+									var npm = self.modules.find(function(mod) { return mod.pkg.name == module });
+									if (!npm) return next('Cannot find NPM module "' + module + '" required by JS local pre-load of "' + m.file + '"');
+
+									return 'require(' + enclose + fspath.dirname(npm.path) + enclose + ')';
+								});
+								// }}}
+
+								self.content = self.content.replace(m.marker, m.marker + '\n' + '<script>' + m.content + '</script>');
+								next();
+							})
+							.end(next);
+					},
+					// }}}
+				])
+				// }}}
+
+				// End {{{
 				.end(function(err) {
-					next(err, baseContent);
+					next(err, this.content);
 				});
-			// }}}
+				// }}}
 			// }}}
 		})
 		.then(function(next) {
 			// Create temp file (which is the EJS compiled template) {{{
+			var self = this;
 			if (tempFile) return next(); // tempFile already setup
 			tempFile = temp.path({suffix: '.html'});
 			if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Setup temp file', colors.cyan(tempFile));
@@ -132,8 +263,7 @@ function loadTheme(finish) {
 				debugMode: program.debug,
 				paths: {
 					root: 'file://' + __dirname,
-					theme: 'file://' + fspath.dirname(program.theme),
-					modules: 'file://' + __dirname + '/node_modules',
+					theme: 'file://' + self.themeDir,
 				},
 			}), function(err) {
 				if (err) return next(err);
@@ -152,7 +282,7 @@ program
 	.version(require('./package.json').version)
 	.option('-d, --debug', 'Enter debug mode. Show as window and enable dev-tools')
 	.option('-v, --verbose', 'Be verbose. Specify multiple times for increasing verbosity', function(i, v) { return v + 1 }, 0)
-	.option('-t, --theme [file]', 'Specify main theme HTML file', __dirname + '/themes/default/index.html')
+	.option('-t, --theme [file]', 'Specify main theme HTML file (default = "conkie-theme-default")', 'conkie-theme-default')
 	.option('-b, --background', 'Detach from parent (prevents quitting when parent process dies)')
 	.option('--refresh [ms]', 'Time in MS to refresh all system statistics (when on power, default = 1s)', 1000)
 	.option('--refresh-battery [ms]', 'Time in MS to refresh system stats (when on battery, default = 10s)', 10000)
@@ -168,11 +298,6 @@ var ifSpeeds = {};
 // }}}
 
 async()
-	.then(function(next) {
-		//  checks {{{
-		next();
-		// }}}
-	})
 	.then(function(next) {
 		// Setup browser app {{{
 		app = electron.app
