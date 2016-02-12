@@ -429,9 +429,9 @@ async()
 					}
 				});
 
-			if (program.debug) {
+			if (program.debug || program.verbose > 2) {
 				conkieStats.on('debug', function(msg) {
-					console.log(colors.blue('[Stats/Debug]'), msg);
+					console.log(colors.blue('[Stats/Debug]'), colors.grey(msg));
 				})
 			}
 			next();
