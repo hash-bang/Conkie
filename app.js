@@ -299,6 +299,9 @@ var ifSpeeds = {};
 
 async()
 	.then(function(next) {
+		// Setup main process {{{
+		process.title = 'conkie';
+		// }}}
 		// Setup browser app {{{
 		app = electron.app
 			.once('window-all-closed', function() {
