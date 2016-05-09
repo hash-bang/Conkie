@@ -33,19 +33,19 @@ Installing
 	# Install Node + NPM - see https://nodejs.org/en/download
 
 	# Install all Conkie's external statistics gathering tools
-	sudo apt-get install bwm-ng lm-sensors iotop
+	sudo apt-get install bwm-ng lm-sensors iotop wmctrl
 
 	# Install Conkie itself and a theme
 	npm install -g conkie conkie-theme-default
 
 
-Run Conkie as a background process with:
+Run Conkie as a background process with (this also uses `nice` to make sure Conkie sits in the idle update time of your CPU):
 
-	conkie -b
+	nice conkie --background
 
 To specify a specific theme (instead of the default) either provide the path to the HTML file or the name of the NPM module:
 
-	conkie -b -t conkie-theme-foobar
+	conkie --background --theme conkie-theme-foobar
 
 Use `--help` for other command line help.
 
