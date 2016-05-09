@@ -35,8 +35,8 @@ Installing
 	# Install all Conkie's external statistics gathering tools
 	sudo apt-get install bwm-ng lm-sensors iotop
 
-	# Install Conkie itself
-	npm install -g conkie
+	# Install Conkie itself and a theme
+	npm install -g conkie conkie-theme-default
 
 
 Run Conkie as a background process with:
