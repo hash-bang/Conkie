@@ -129,6 +129,18 @@ function loadTheme(finish) {
 						next();
 					},
 					// }}}
+					// Read the <meta> tag options {{{
+					function(next) {
+						var matches;
+						if (matches = this.content.match(/<meta.+?name="conkie-window-type".*?>/)) {
+							if (matches = matches[0].match(/content="(.*?)"/)) {
+								metaOptions.windowType = matches[1];
+								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), "Found meta option 'conkie-window-type'", matches[1]);
+							}
+						}
+						next();
+					},
+					// }}}
 				])
 
 				// Cache all local JS files contents so we know what modules we will need in the compile stage {{{
@@ -297,6 +309,12 @@ var cpuUsage;
 var ifSpeeds = {};
 // }}}
 
+// Options from theme's meta data {{{
+var metaOptions = {
+	windowType: 'desktop'
+};
+// }}}
+
 async()
 	.then(function(next) {
 		// Setup main process {{{
@@ -335,7 +353,7 @@ async()
 					resizable: false,
 					skipTaskbar: true,
 					title: 'Conkie',
-					type: 'desktop',
+					type: metaOptions.windowType,
 					show: false,
 					transparent: true,
 					x: 10,
