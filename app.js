@@ -407,13 +407,13 @@ async()
 			electron.ipcMain
 				.on('statsRegister', function() {
 					var mods = _.flatten(Array.prototype.slice.call(arguments).slice(1));
-					if (program.debug) console.log(colors.blue('[Stats/Debug]'), 'Register stats modules', mods.map(function(m) { return colors.cyan(m) }).join(', '));
+					if (program.verbose > 2 || program.debug) console.log(colors.blue('[Stats]'), 'Register stats modules', mods.map(function(m) { return colors.cyan(m) }).join(', '));
 					conkieStats.register(mods);
 				});
 
 			electron.ipcMain
 				.on('statsSettings', function(e, options) {
-					if (program.verbose > 2) console.log(colors.blue('[Stats]'), 'Register stats settings', util.inspect(options, {depth: null, colors: true}));
+					if (program.verbose > 2 || program.debug) console.log(colors.blue('[Stats]'), 'Register stats settings', util.inspect(options, {depth: null, colors: true}));
 					conkieStats.settings(options);
 				});
 
