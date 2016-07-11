@@ -90,7 +90,6 @@ function loadTheme(finish) {
 				.set('findModules', [])
 				.set('moduleBlacklist', [ // Never try to replace these module requires
 					'electron', // Electron object is provided by parent process
-					'lodash', // Already included in main project
 				])
 				.set('markers', [])
 				.parallel([
