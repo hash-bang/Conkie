@@ -8,8 +8,8 @@ var ejs = require('ejs');
 var electron = require('electron');
 var fs = require('fs');
 var fspath = require('path');
-var moduleFinder = require('module-finder');
 var os = require('os');
+var requireGrep = require('require-grep');
 var temp = require('temp').track();
 var util = require('util');
 
@@ -41,11 +41,11 @@ function loadTheme(finish) {
 			// Resolve --theme path to program.theme + /index.html if the user missed that part {{{
 			program.theme = fspath.resolve(program.theme);
 			fs.stat(program.theme, function(err, stat) {
-				if (err) return next(err);
+				if (err) return next(); // Ignore err - let next process handle it
 				if (stat.isDirectory()) {
 					var resolvedPath = fspath.join(program.theme, 'index.html');
 					fs.stat(resolvedPath, function(err, stat) {
-						if (err) return next(err);
+						if (err) return next(); // Ignore err - let next process handle it
 						program.theme = resolvedPath;
 						if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Auto-fixed theme path', colors.cyan(program.theme));
 						next();
@@ -63,19 +63,10 @@ function loadTheme(finish) {
 				});
 			},
 			themeModule: function(next) {
-				moduleFinder({
+				requireGrep(program.theme, {
 					local: true,
+					failNone: false,
 					global: true,
-					cwd: __dirname,
-					filter: {
-						name: program.theme,
-					},
-				}).then(function(res) {
-					if (res.length) { // Found a matching module
-						return next(null, res[0]);
-					} else { // No module matching this found
-						return next();
-					}
 				}, next);
 			},
 		})
@@ -216,14 +207,10 @@ function loadTheme(finish) {
 						.value();
 
 					if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Find modules', colors.cyan(this.findModules.map(function(m) { return colors.cyan(m) }).join(', ')));
-					moduleFinder({
-						local: true,
-						global: true,
-						cwd: this.themeDir,
-						filter: {
-							name: {'$in': this.findModules}
-						},
-					}).then(function(res) { next(null, res) }, next);
+					requireGrep(this.findModules, {
+						multiple: true,
+						localPaths: [ fspath.join(this.themeDir, 'node_modules') ],
+					}, next);
 				})
 				// }}}
 
@@ -234,10 +221,10 @@ function loadTheme(finish) {
 						var self = this;
 						async()
 							.forEach(_.filter(this.markers, {type: 'css'}), function(next, m) {
-								var npm = self.modules.find(function(mod) { return mod.pkg.name == m.module });
-								if (!npm) return next('Cannot find NPM module "' + m.module + '" required by CSS pre-load of "' + m.file + '"');
+								var npmPath = self.modules.find(function(mod) { return fspath.basename(mod) == m.module });
+								if (!npmPath) return next('Cannot find NPM module "' + m.module + '" required by CSS pre-load of "' + m.file + '"');
 
-								var cssPath = fspath.join(fspath.dirname(npm.path), m.file);
+								var cssPath = fspath.join(npmPath, m.file);
 
 								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS asset', colors.cyan(cssPath));
 								fs.readFile(cssPath, 'utf8', function(err, content) {
@@ -254,10 +241,10 @@ function loadTheme(finish) {
 						var self = this;
 						async()
 							.forEach(_.filter(this.markers, {type: 'js'}), function(next, m) {
-								var npm = self.modules.find(function(mod) { return mod.pkg.name == m.module });
-								if (!npm) return next('Cannot find NPM module "' + m.module + '" required by JS pre-load of "' + m.file + '"');
+								var npmPath = self.modules.find(function(mod) { return fspath.basename(mod) == m.module });
+								if (!npmPath) return next('Cannot find NPM module "' + m.module + '" required by JS pre-load of "' + m.file + '"');
 
-								var jsPath = fspath.join(fspath.dirname(npm.path), m.file);
+								var jsPath = fspath.join(npmPath, m.file);
 
 								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read JS asset', colors.cyan(jsPath));
 								fs.readFile(jsPath, 'utf8', function(err, content) {
@@ -280,10 +267,11 @@ function loadTheme(finish) {
 								m.content = m.content.replace(/require\(("|')(.+?)\1\)/g, function(block, enclose, module) {
 									if (_.includes(self.moduleBlacklist, module)) return block; // Skip blacklisted modules
 
-									var npm = self.modules.find(function(mod) { return mod.pkg.name == module });
-									if (!npm) return next('Cannot find NPM module "' + module + '" required by JS local pre-load of "' + m.file + '"');
+									var npmPath = self.modules.find(function(mod) { return fspath.basename(mod) == module });
+									if (!npmPath) return next('Cannot find NPM module "' + module + '" required by JS local pre-load of "' + m.file + '"');
 
-									return 'require(' + enclose + fspath.dirname(npm.path) + enclose + ')';
+									console.log( 'require(' + enclose + npmPath + enclose + ')' );
+									return 'require(' + enclose + npmPath + enclose + ')';
 								});
 								// }}}
 
