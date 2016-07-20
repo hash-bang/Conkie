@@ -65,8 +65,8 @@ function loadTheme(finish) {
 			themeModule: function(next) {
 				requireGrep(program.theme, {
 					local: true,
-					failNone: false,
 					global: true,
+					failNone: false,
 				}, next);
 			},
 		})
@@ -78,8 +78,8 @@ function loadTheme(finish) {
 				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme path', colors.cyan(this.themeMain));
 				next();
 			} else if (this.themeModule) {
-				this.themeMain = fspath.join(fspath.dirname(this.themeModule.path), this.themeModule.pkg.main);
-				this.themeDir = fspath.dirname(this.themeMain);
+				this.themeMain = fspath.join(this.themeModule, 'index.html');
+				this.themeDir = this.themeModule;
 				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme module', colors.cyan(this.themeModule.pkg.name), 'with HTML path', colors.cyan(this.themeMain));
 				next();
 			} else {
@@ -270,7 +270,6 @@ function loadTheme(finish) {
 									var npmPath = self.modules.find(function(mod) { return fspath.basename(mod) == module });
 									if (!npmPath) return next('Cannot find NPM module "' + module + '" required by JS local pre-load of "' + m.file + '"');
 
-									console.log( 'require(' + enclose + npmPath + enclose + ')' );
 									return 'require(' + enclose + npmPath + enclose + ')';
 								});
 								// }}}
