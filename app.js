@@ -37,6 +37,25 @@ function loadTheme(finish) {
 	async()
 		.set('themeMain', '') // Path to main HTML file (either path or module+path)
 		.set('themeDir', '') // Path to main directory of theme
+		.then(function(next) {
+			// Resolve --theme path to program.theme + /index.html if the user missed that part {{{
+			program.theme = fspath.resolve(program.theme);
+			fs.stat(program.theme, function(err, stat) {
+				if (err) return next(err);
+				if (stat.isDirectory()) {
+					var resolvedPath = fspath.join(program.theme, 'index.html');
+					fs.stat(resolvedPath, function(err, stat) {
+						if (err) return next(err);
+						program.theme = resolvedPath;
+						console.log('PATH NOW', program.theme);
+						next();
+					});
+				} else {
+					next();
+				}
+			});
+			// }}}
+		})
 		.parallel({
 			themeStats: function(next) {
 				fs.stat(program.theme, function(err, stat) {
