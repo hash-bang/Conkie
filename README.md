@@ -137,8 +137,9 @@ Theme options
 -------------
 Theme options can be specified in three ways:
 
-1. Call via internal IPC function - See the [theme API reference](#theme-api-reference).
+1. Call via internal IPC function - See the [theme API reference](#theme-api-reference). These override any user specification in 3.
 2. Options can be specified as meta tags within the themes main HTML file. All options should be prefixed with `conkie-` and should be in [kebab-case](https://en.wikipedia.org/wiki/Letter_case#Special_case_styles). e.g. `<meta name="conkie-window-type" content="desktop"/>` specifies that the window should have the type `desktop` (note that `conkie-window-type` is the HTML meta tag equivalent to `windowType` internally)
+3. Options can be specified on the command line via `-o option=value` syntax (e.g. `-o windowType=desktop`). See the command line reference for exact syntax.
 
 The full list of options are:
 

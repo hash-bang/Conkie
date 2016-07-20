@@ -302,6 +302,7 @@ program
 	.option('-v, --verbose', 'Be verbose. Specify multiple times for increasing verbosity', function(i, v) { return v + 1 }, 0)
 	.option('-t, --theme [file]', 'Specify main theme HTML file (default = "conkie-theme-default")', 'conkie-theme-default')
 	.option('-b, --background', 'Detach from parent (prevents quitting when parent process dies)')
+	.option('-o, --opt [key]=[value]', 'Set a option via the command line', function(i, v) { v.push(i); return v }, [])
 	.option('--refresh [ms]', 'Time in MS to refresh all system statistics (when on power, default = 1s)', 1000)
 	.option('--refresh-battery [ms]', 'Time in MS to refresh system stats (when on battery, default = 10s)', 10000)
 	.option('--debug-stats', 'Show stats object being transmitted to front-end')
@@ -326,6 +327,26 @@ var windowDefaults = {
 	width: 200,
 	title: 'Conkie',
 };
+
+// Inject program.opt into the array {{{
+program.opt = _(program.opt)
+	.mapKeys(function(key) { return key.split(/\s*=\s*/)[0] })
+	.mapValues(function(val) { return val.split(/\s*=\s*/)[1] })
+	.forEach(function(val, key) {
+		if (!_.has(windowDefaults, key)) {
+			console.log('Unknown option:', colors.cyan(key));
+			process.exit(1);
+		}
+		switch (key) {
+			case 'transparent': // Special conversion handling for Booleans
+				windowDefaults[key] = (val == 'true');
+				break;
+			default:
+				windowDefaults[key] = val;
+		}
+		if (program.verbose > 3) console.log(colors.blue('[Conkie]'), 'CLI set', colors.cyan(key), 'to', colors.cyan(val));
+	});
+// }}}
 // }}}
 
 async()
