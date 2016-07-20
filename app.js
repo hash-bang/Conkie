@@ -47,7 +47,7 @@ function loadTheme(finish) {
 					fs.stat(resolvedPath, function(err, stat) {
 						if (err) return next(err);
 						program.theme = resolvedPath;
-						console.log('PATH NOW', program.theme);
+						if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Auto-fixed theme path', colors.cyan(program.theme));
 						next();
 					});
 				} else {
@@ -149,14 +149,34 @@ function loadTheme(finish) {
 					// }}}
 					// Read the <meta> tag options {{{
 					function(next) {
-						var matches;
-						if (matches = this.content.match(/<meta.+?name="conkie-window-type".*?>/)) {
-							if (matches = matches[0].match(/content="(.*?)"/)) {
-								metaOptions.windowType = matches[1];
-								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), "Found meta option 'conkie-window-type'", matches[1]);
-							}
-						}
-						next();
+						async()
+							.set('content', this.content)
+							.forEach({
+								// Meta-parameter-name => property-within-windowDefaults-to-map-to
+								'conkie-window-type': 'windowType',
+								'conkie-x': 'x',
+								'conkie-y': 'x',
+								'conkie-width': 'width',
+								'conkie-height': 'height',
+								'conkie-transparent': 'transparent',
+								'conkie-title': 'title',
+							}, function(next, param, metaParam) {
+								var matches = (new RegExp('<meta.+?name="' + metaParam + '".*?>')).exec(this.content);
+								if (matches) {
+									if (matches = matches[0].match(/content="(.*?)"/)) {
+										switch (param) {
+											case 'transparent': // Special conversion handling for Booleans
+												windowDefaults[param] = (matches[1] == 'true');
+												break;
+											default:
+												windowDefaults[param] = matches[1];
+										}
+										if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Meta option', colors.cyan(metaParam), 'set to', colors.cyan(matches[1]));
+									}
+								}
+								next();
+							})
+							.end(next);
 					},
 					// }}}
 				])
@@ -327,9 +347,16 @@ var cpuUsage;
 var ifSpeeds = {};
 // }}}
 
-// Options from theme's meta data {{{
-var metaOptions = {
-	windowType: 'desktop'
+// Default window properties to use when building the Electron UI {{{
+// These are all usually left at defaults unless overriden via `<meta name="conkie-KEY" content="VALUE"/>` somewhere in the processed HTML
+var windowDefaults = {
+	windowType: 'desktop',
+	x: 10,
+	y: 10,
+	transparent: true,
+	height: 1000,
+	width: 200,
+	title: 'Conkie',
 };
 // }}}
 
@@ -365,17 +392,17 @@ async()
 					show: false,
 				}
 				: {
-					width: 200,
-					height: 1000,
+					width: windowDefaults.width,
+					height: windowDefaults.height,
 					frame: false,
 					resizable: false,
 					skipTaskbar: true,
-					title: 'Conkie',
-					type: metaOptions.windowType,
+					title: windowDefaults.title,
+					type: windowDefaults.windowType,
 					show: false,
-					transparent: true,
-					x: 10,
-					y: 10,
+					transparent: windowDefaults.transparent,
+					x: windowDefaults.x,
+					y: windowDefaults.y,
 					center: false,
 				}
 		);

@@ -133,6 +133,28 @@ At the moment a fair amount of workarounds are in place to fix up various weird 
 The theme file gets read into memory then re-written on the fly to read each external JS / CSS asset and insert it into the file as inline content. In *most* cases this should be sufficient but it is a pretty horrible kludge. This is because Electron apps straddle the boundary between desktop apps and web pages where stuff like loading external CSS is still a bit iffy. Please get in touch with feedback if the solution I've implemented is needlessly insane but I honestly couldn't find a decent method of loading CSS from NPM modules.
 
 
+Theme options
+-------------
+Theme options can be specified in three ways:
+
+1. Call via internal IPC function - See the [theme API reference](#theme-api-reference).
+2. Options can be specified as meta tags within the themes main HTML file. All options should be prefixed with `conkie-` and should be in [kebab-case](https://en.wikipedia.org/wiki/Letter_case#Special_case_styles). e.g. `<meta name="conkie-window-type" content="desktop"/>` specifies that the window should have the type `desktop` (note that `conkie-window-type` is the HTML meta tag equivalent to `windowType` internally)
+
+The full list of options are:
+
+| Property             | Default    | Pre-show only | Description |
+|----------------------|------------|:-------------:|-------------|
+| `height`             | `1000`     |               | The initial height of the window |
+| `title`              | `"Conkie"` |               | The initial window title |
+| `transparent`        | `true`     | yes           | Whether the window should render with a transparent background |
+| `width`              | `200`      |               | The initial width of the window |
+| `windowType`         | `desktop`  | yes           | What kind of window to display. [Possible values listed in the Electron project](https://github.com/electron/electron/blob/master/docs/api/browser-window.md) |
+| `x`                  | `10`       |               | The initial X offset of the window |
+| `y`                  | `10`       |               | The initial Y offset of the window |
+
+**NOTE:** Due to the way Window creation is handled in Electron, certain options are only available *before* the window is actually created - i.e. cannot be scripted. These are indicated with `Pre-show only=yes` in the above table. The intention is as Electron matures these options will also be changeable but for the moment the only way a theme can override them is to specify them as meta options.
+
+
 TODO
 ====
 
