@@ -61,7 +61,7 @@ function loadTheme(finish) {
 			} else if (this.themeModule) {
 				this.themeMain = fspath.join(this.themeModule, 'index.html');
 				this.themeDir = this.themeModule;
-				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme module', colors.cyan(this.themeModule.pkg.name), 'with HTML path', colors.cyan(this.themeMain));
+				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme module', colors.cyan(fspath.basename(this.themeDir)), 'with HTML path', colors.cyan(this.themeMain));
 				next();
 			} else {
 				next('No theme file or matching module found');
