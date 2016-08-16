@@ -1,6 +1,6 @@
 {
   "name": "conkie",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "JavaScript desktop widgets",
   "main": "app.js",
   "bin": {
@@ -28,7 +28,7 @@
     "box-sizing": "^1.0.1",
     "colors": "^1.1.2",
     "commander": "^2.9.0",
-    "conkie-stats": "^1.3.11",
+    "conkie-stats": "^1.3.12",
     "ejs": "^2.4.2",
     "electron-prebuilt": "^1.2.7",
     "lodash": "^4.13.1",
