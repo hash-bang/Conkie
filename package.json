@@ -1,6 +1,6 @@
 {
   "name": "conkie",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "JavaScript desktop widgets",
   "main": "app.js",
   "bin": {
@@ -32,7 +32,7 @@
     "ejs": "^2.4.2",
     "electron-prebuilt": "^1.2.7",
     "lodash": "^4.13.1",
-    "require-grep": "0.0.0",
+    "require-grep": "0.0.1",
     "temp": "^0.8.3"
   }
 }
