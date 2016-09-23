@@ -12,6 +12,7 @@ var os = require('os');
 var requireGrep = require('require-grep');
 var temp = require('temp').track();
 var util = require('util');
+var which = require('which');
 
 // Global objects {{{
 var app;
@@ -350,26 +351,41 @@ program.opt = _(program.opt)
 // }}}
 
 async()
-	.then(function(next) {
+	// Sanity checks - Check for required binaries {{{
+	.forEach(['wmctrl'], function(next, bin) {
+		which(bin, function(err, path) {
+			if (err) return next('Required binary "' + bin + '" is not in PATH. You will need to install this for Conkie to work');
+			next();
+		});
+	})
+	// }}}
+	.parallel([
 		// Setup main process {{{
-		process.title = 'conkie';
+		function(next) {
+			process.title = 'conkie';
+			next();
+		},
 		// }}}
 		// Setup browser app {{{
-		app = electron.app
-			.once('window-all-closed', function() {
-				if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'All windows closed');
-				if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
-			})
-			.once('ready', function() {
-				if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Electron app ready');
-				next();
-			})
-			.once('error', next);
+		function(next) {
+			app = electron.app
+				.once('window-all-closed', function() {
+					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'All windows closed');
+					if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
+				})
+				.once('ready', function() {
+					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Electron app ready');
+					next();
+				})
+				.once('error', next);
+		},
 		// }}}
-	})
+	])
+	// Load the theme {{{
 	.then(loadTheme)
+	// }}}
+	// Setup electron page {{{
 	.then(function(next) {
-		// Setup page {{{
 		// Create the browser window.
 		win = new electron.BrowserWindow(
 			program.debug
@@ -413,8 +429,8 @@ async()
 
 			return next();
 		});
-		// }}}
 	})
+	// }}}
 	.parallel([
 		// Listen for messages {{{
 		function(next) {
@@ -569,7 +585,7 @@ async()
 
 		// Handle exit state {{{
 		if (err) {
-			console.log(colors.blue('[Conkie]'), colors.red('ERR', err.toString()));
+			console.log(colors.blue('[Conkie]'), colors.red('ERR'), err.toString());
 			process.exit(1);
 		} else {
 			console.log(colors.blue('[Conkie]'), 'Exit');
