@@ -57,12 +57,12 @@ function loadTheme(finish) {
 			if (this.themeStats && this.themeStats.isFile()) { // Process as path
 				this.themeMain = program.theme;
 				this.themeDir = fspath.dirname(this.themeMain);
-				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme path', colors.cyan(this.themeMain));
+				if (program.verbose >= 1) console.log(colors.blue('[Conkie]'), 'Using theme path', colors.cyan(this.themeMain));
 				next();
 			} else if (this.themeModule) {
 				this.themeMain = fspath.join(this.themeModule, 'index.html');
 				this.themeDir = this.themeModule;
-				if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Using theme module', colors.cyan(fspath.basename(this.themeDir)), 'with HTML path', colors.cyan(this.themeMain));
+				if (program.verbose >= 1) console.log(colors.blue('[Conkie]'), 'Using theme module', colors.cyan(fspath.basename(this.themeDir)), 'with HTML path', colors.cyan(this.themeMain));
 				next();
 			} else {
 				next('No theme file or matching module found');
@@ -144,7 +144,7 @@ function loadTheme(finish) {
 											default:
 												windowDefaults[param] = matches[1];
 										}
-										if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Meta option', colors.cyan(metaParam), 'set to', colors.cyan(matches[1]));
+										if (program.verbose >= 2) console.log(colors.blue('[Theme/Preparser]'), 'Meta option', colors.cyan(metaParam), 'set to', colors.cyan(matches[1]));
 									}
 								}
 								next();
@@ -188,7 +188,7 @@ function loadTheme(finish) {
 						.filter(function(m) { return !_.includes(self.moduleBlacklist, m) }) // Remove blacklisted modules
 						.value();
 
-					if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Find modules', colors.cyan(this.findModules.map(function(m) { return colors.cyan(m) }).join(', ')));
+					if (program.verbose >= 2) console.log(colors.blue('[Theme/Preparser]'), 'Find modules', colors.cyan(this.findModules.map(function(m) { return colors.cyan(m) }).join(', ')));
 					requireGrep(this.findModules, {
 						multiple: true,
 						localPaths: [ fspath.join(this.themeDir, 'node_modules') ],
@@ -208,7 +208,7 @@ function loadTheme(finish) {
 
 								var cssPath = fspath.join(npmPath, m.file);
 
-								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS asset', colors.cyan(cssPath));
+								if (program.verbose >= 2) console.log(colors.blue('[Theme/Preparser]'), 'Read CSS asset', colors.cyan(cssPath));
 								fs.readFile(cssPath, 'utf8', function(err, content) {
 									if (err) return finish(err);
 									self.content = self.content.replace(m.marker, m.marker + '\n' + '<style>' + content + '</style>');
@@ -228,7 +228,7 @@ function loadTheme(finish) {
 
 								var jsPath = fspath.join(npmPath, m.file);
 
-								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Read JS asset', colors.cyan(jsPath));
+								if (program.verbose >= 2) console.log(colors.blue('[Theme/Preparser]'), 'Read JS asset', colors.cyan(jsPath));
 								fs.readFile(jsPath, 'utf8', function(err, content) {
 									if (err) return finish(err);
 									self.content = self.content.replace(m.marker, m.marker + '\n' + '<script>' + content + '</script>');
@@ -243,7 +243,7 @@ function loadTheme(finish) {
 						var self = this;
 						async()
 							.forEach(_.filter(this.markers, {type: 'jsLocal'}), function(next, m) {
-								if (program.verbose > 2) console.log(colors.blue('[Theme/Preparser]'), 'Rewrite JS local asset', colors.cyan(m.file));
+								if (program.verbose >= 2) console.log(colors.blue('[Theme/Preparser]'), 'Rewrite JS local asset', colors.cyan(m.file));
 
 								// Replace required modules in this file {{{
 								m.content = m.content.replace(/require\(("|')(.+?)\1\)/g, function(block, enclose, module) {
@@ -277,7 +277,7 @@ function loadTheme(finish) {
 			var self = this;
 			if (tempFile) return next(); // tempFile already setup
 			tempFile = temp.path({suffix: '.html'});
-			if (program.verbose > 1) console.log(colors.blue('[Conkie]'), 'Setup temp file', colors.cyan(tempFile));
+			if (program.verbose >= 1) console.log(colors.blue('[Conkie]'), 'Setup temp file', colors.cyan(tempFile));
 			fs.writeFile(tempFile, ejs.render(this.content, {
 				debugMode: program.debug,
 				paths: {
@@ -345,7 +345,7 @@ program.opt = _(program.opt)
 			default:
 				windowDefaults[key] = val;
 		}
-		if (program.verbose > 3) console.log(colors.blue('[Conkie]'), 'CLI set', colors.cyan(key), 'to', colors.cyan(val));
+		if (program.verbose >= 3) console.log(colors.blue('[Conkie]'), 'CLI set', colors.cyan(key), 'to', colors.cyan(val));
 	});
 // }}}
 // }}}
@@ -353,40 +353,50 @@ program.opt = _(program.opt)
 async()
 	// Sanity checks - Check for required binaries {{{
 	.forEach(['wmctrl'], function(next, bin) {
+		if (program.verbose >= 3) console.log(colors.blue('[Conkie]'), 'Checking for binary', colors.cyan(bin));
 		which(bin, function(err, path) {
 			if (err) return next('Required binary "' + bin + '" is not in PATH. You will need to install this for Conkie to work');
+			if (program.verbose >= 2) console.log(colors.blue('[Conkie]'), 'Binary', colors.cyan(bin), 'found at', colors.cyan(path));
 			next();
 		});
 	})
 	// }}}
-	.parallel([
-		// Setup main process {{{
-		function(next) {
-			process.title = 'conkie';
-			next();
-		},
-		// }}}
-		// Setup browser app {{{
-		function(next) {
-			app = electron.app
-				.once('window-all-closed', function() {
-					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'All windows closed');
-					if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
-				})
-				.once('ready', function() {
-					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Electron app ready');
-					next();
-				})
-				.once('error', next);
-		},
-		// }}}
-	])
+	// Setup main process {{{
+	.then(function(next) {
+		process.title = 'conkie';
+		next();
+	})
+	// }}}
+	// Setup browser app {{{
+	.then(function(next) {
+		if (program.verbose >= 3) console.log(colors.blue('[Conkie]'), 'Setting up Electron instance');
+
+		app = electron.app
+			.once('window-all-closed', function() {
+				if (program.verbose >= 2) console.log(colors.blue('[Conkie]'), 'All windows closed');
+				if (process.platform != 'darwin') app.quit(); // Kill everything if we're on Darwin
+			})
+			.once('error', next);
+
+		// We have to loop until electron is ready - see https://github.com/electron/electron/issues/1726
+		var checkReady = function() {
+			if (app.isReady()) {
+				if (program.verbose >= 2) console.log(colors.blue('[Conkie]'), 'Electron app ready');
+				next();
+			} else {
+				setTimeout(checkReady, 10);
+			}
+		};
+		checkReady();
+	})
+	// }}}
 	// Load the theme {{{
 	.then(loadTheme)
 	// }}}
 	// Setup electron page {{{
 	.then(function(next) {
 		// Create the browser window.
+		if (program.verbose >= 3) console.log(colors.blue('[Conkie]'), 'Creating Electron window');
 		win = new electron.BrowserWindow(
 			program.debug
 				? {
@@ -420,6 +430,7 @@ async()
 		win.loadURL('file://' + tempFile);
 
 		win.webContents.once('dom-ready', function() {
+			if (program.verbose >= 3) console.log(colors.blue('[Conkie]'), 'Electron DOM ready');
 			if (program.debug) {
 				win.show();
 				win.webContents.openDevTools();
