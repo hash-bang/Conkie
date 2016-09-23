@@ -390,6 +390,82 @@ async()
 		checkReady();
 	})
 	// }}}
+	// Setup message listener {{{
+	.then(function(next) {
+		conkieStats
+			.on('error', function(err) {
+				console.log(colors.blue('[Stats/Error]'), colors.red('ERR', err));
+			})
+			.on('update', function(stats) {
+				if (program.debugStats) console.log(colors.blue('[Stats]'), JSON.stringify(stats, null, '\t'));
+				var batStatus = _.get(stats, 'power[0].status');
+				if (!onBattery && batStatus == 'discharging') {
+					if (program.verbose > 1) console.log(colors.blue('[Stats]'), 'Detected battery mode - adjusting stats poll to', colors.cyan(program.refreshBattery + 'ms'));
+					conkieStats.setPollFreq(program.refreshBattery);
+					onBattery = true;
+				} else if (onBattery && batStatus != 'discharging') {
+					if (program.verbose > 1) console.log(colors.blue('[Stats]'), 'Detected powered mode - adjusting stats poll to', colors.cyan(program.refresh+ 'ms'));
+					conkieStats.setPollFreq(program.refresh);
+					onBattery = false;
+				}
+				win.webContents.send('updateStats', stats);
+			})
+			.setPollFreq(program.refresh);
+
+		electron.ipcMain
+			.on('statsRegister', function() {
+				var mods = _.flatten(Array.prototype.slice.call(arguments).slice(1));
+				if (program.verbose > 2 || program.debug) console.log(colors.blue('[Stats]'), 'Register stats modules', mods.map(function(m) { return colors.cyan(m) }).join(', '));
+				conkieStats.register(mods);
+			});
+
+		electron.ipcMain
+			.on('statsSettings', function(e, options) {
+				if (program.verbose > 2 || program.debug) console.log(colors.blue('[Stats]'), 'Register stats settings', util.inspect(options, {depth: null, colors: true}));
+				conkieStats.settings(options);
+			});
+
+		electron.ipcMain
+			.on('setPosition', function(e, position) {
+				if (program.debug) {
+					console.log(colors.blue('[Conkie]'), 'Set window position', colors.red('ignored in debug mode'));
+					return;
+				}
+
+				if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Set window position', util.inspect(position, {depth: null, colors: true}));
+
+				var mainScreen = electron.screen.getPrimaryDisplay();
+				var calcPosition = boxSizing(position, {
+					left: 10,
+					top: 10,
+					width: '33%',
+					height: '33%',
+					maxWidth: mainScreen.size.width,
+					maxHeight: mainScreen.size.height,
+				});
+
+				if (program.verbose > 3) console.log(colors.blue('[Conkie]'), 'Set window position (actual)', util.inspect(calcPosition, {depth: null, colors: true}));
+
+				if (calcPosition) {
+					win.setBounds({
+						x: calcPosition.left,
+						y: calcPosition.top,
+						width: calcPosition.width,
+						height: calcPosition.height,
+					});
+				} else {
+					if (program.verbose > 2) console.log(colors.blue('[Conkie/setPosition]'), colors.red('ERROR'), 'Invalid window position object', position);
+				}
+			});
+
+		if (program.debug || program.verbose > 2) {
+			conkieStats.on('debug', function(msg) {
+				console.log(colors.blue('[Stats/Debug]'), colors.grey(msg));
+			})
+		}
+		next();
+	})
+	// }}}
 	// Load the theme {{{
 	.then(loadTheme)
 	// }}}
@@ -443,82 +519,6 @@ async()
 	})
 	// }}}
 	.parallel([
-		// Listen for messages {{{
-		function(next) {
-			conkieStats
-				.on('error', function(err) {
-					console.log(colors.blue('[Stats/Error]'), colors.red('ERR', err));
-				})
-				.on('update', function(stats) {
-					if (program.debugStats) console.log(colors.blue('[Stats]'), JSON.stringify(stats, null, '\t'));
-					var batStatus = _.get(stats, 'power[0].status');
-					if (!onBattery && batStatus == 'discharging') {
-						if (program.verbose > 1) console.log(colors.blue('[Stats]'), 'Detected battery mode - adjusting stats poll to', colors.cyan(program.refreshBattery + 'ms'));
-						conkieStats.setPollFreq(program.refreshBattery);
-						onBattery = true;
-					} else if (onBattery && batStatus != 'discharging') {
-						if (program.verbose > 1) console.log(colors.blue('[Stats]'), 'Detected powered mode - adjusting stats poll to', colors.cyan(program.refresh+ 'ms'));
-						conkieStats.setPollFreq(program.refresh);
-						onBattery = false;
-					}
-					win.webContents.send('updateStats', stats);
-				})
-				.setPollFreq(program.refresh);
-
-			electron.ipcMain
-				.on('statsRegister', function() {
-					var mods = _.flatten(Array.prototype.slice.call(arguments).slice(1));
-					if (program.verbose > 2 || program.debug) console.log(colors.blue('[Stats]'), 'Register stats modules', mods.map(function(m) { return colors.cyan(m) }).join(', '));
-					conkieStats.register(mods);
-				});
-
-			electron.ipcMain
-				.on('statsSettings', function(e, options) {
-					if (program.verbose > 2 || program.debug) console.log(colors.blue('[Stats]'), 'Register stats settings', util.inspect(options, {depth: null, colors: true}));
-					conkieStats.settings(options);
-				});
-
-			electron.ipcMain
-				.on('setPosition', function(e, position) {
-					if (program.debug) {
-						console.log(colors.blue('[Conkie]'), 'Set window position', colors.red('ignored in debug mode'));
-						return;
-					}
-
-					if (program.verbose > 2) console.log(colors.blue('[Conkie]'), 'Set window position', util.inspect(position, {depth: null, colors: true}));
-
-					var mainScreen = electron.screen.getPrimaryDisplay();
-					var calcPosition = boxSizing(position, {
-						left: 10,
-						top: 10,
-						width: '33%',
-						height: '33%',
-						maxWidth: mainScreen.size.width,
-						maxHeight: mainScreen.size.height,
-					});
-
-					if (program.verbose > 3) console.log(colors.blue('[Conkie]'), 'Set window position (actual)', util.inspect(calcPosition, {depth: null, colors: true}));
-
-					if (calcPosition) {
-						win.setBounds({
-							x: calcPosition.left,
-							y: calcPosition.top,
-							width: calcPosition.width,
-							height: calcPosition.height,
-						});
-					} else {
-						if (program.verbose > 2) console.log(colors.blue('[Conkie/setPosition]'), colors.red('ERROR'), 'Invalid window position object', position);
-					}
-				});
-
-			if (program.debug || program.verbose > 2) {
-				conkieStats.on('debug', function(msg) {
-					console.log(colors.blue('[Stats/Debug]'), colors.grey(msg));
-				})
-			}
-			next();
-		},
-		// }}}
 		// Apply X window styles {{{
 		function(next) {
 			if (program.debug) return next();

@@ -1,6 +1,6 @@
 {
   "name": "conkie",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "JavaScript desktop widgets",
   "main": "app.js",
   "bin": {
