@@ -458,6 +458,13 @@ async()
 				}
 			});
 
+		electron.ipcMain
+			.on('console', function() { // General console handler from theme
+				var args = Array.prototype.slice.call(arguments, 0);
+				args[0] = colors.bold.magenta('[Theme/console.log]'); // Splice out event with console prefix
+				if (program.verbose >= 1) console.log.apply(this, args);
+			});
+
 		if (program.debug || program.verbose > 2) {
 			conkieStats.on('debug', function(msg) {
 				console.log(colors.blue('[Stats/Debug]'), colors.grey(msg));
