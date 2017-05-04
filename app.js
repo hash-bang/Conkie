@@ -408,7 +408,7 @@ async()
 					conkieStats.setPollFreq(program.refresh);
 					onBattery = false;
 				}
-				win.webContents.send('updateStats', stats);
+				if (win && win.webContents) win.webContents.send('updateStats', stats);
 			})
 			.setPollFreq(program.refresh);
 
@@ -544,7 +544,7 @@ async()
 					},
 				})
 				.exec([
-					'wmctrl', 
+					'wmctrl',
 					'-F',
 					'-r',
 					'Conkie',
@@ -553,7 +553,7 @@ async()
 					'-vvv',
 				])
 				.exec([
-					'wmctrl', 
+					'wmctrl',
 					'-F',
 					'-r',
 					'Conkie',
