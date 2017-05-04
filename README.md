@@ -6,7 +6,19 @@ This project is designed to replace the seminal [Conky project](https://github.c
 
 Conkie relies on a few things to gather system statistics which is documented in the [Conkie-Stats module](https://github.com/hash-bang/Conkie-Stats). [Basic installation instructions](#installing) are provided below.
 
-![Fullscreen Widget Setup](docs/img/full.jpg)
+
+Themes
+------
+
+![conkie-theme-default](docs/img/full.jpg)
+
+* [conkie-theme-default](https://github.com/hash-bang/conkie-theme-default) by [hash-bang](https://github.com/hash-bang)
+
+
+![conkie-theme-material](https://raw.githubusercontent.com/Heziode/conkie-theme-material/master/screenshot.png)
+
+* [conkie-theme-material](https://github.com/Heziode-dev/conkie-theme-material) by [Heziode](https://github.com/Heziode)
+
 
 
 **ARE YOU A DESIGNER?**
