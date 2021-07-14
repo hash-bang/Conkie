@@ -45,7 +45,7 @@ Installing
 	# Install Node + NPM - see https://nodejs.org/en/download
 
 	# Install all Conkie's external statistics gathering tools
-	sudo apt-get install bwm-ng lm-sensors iotop wmctrl
+	sudo apt-get install bwm-ng gconf lm_sensors iotop wmctrl libgconf-2-4
 
 	# Install Conkie itself and a theme
 	npm install -g conkie conkie-theme-default
